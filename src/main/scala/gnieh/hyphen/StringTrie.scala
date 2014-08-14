@@ -11,9 +11,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package hyphen
+package gnieh.hyphen
 
-class StringTrie[+T] private(val value: Option[T], children: Map[Char, StringTrie[T]]) {
+class StringTrie[+T] private (val value: Option[T], children: Map[Char, StringTrie[T]]) {
 
   def get(key: String): Option[T] = key match {
     case null | "" =>

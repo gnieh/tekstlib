@@ -77,7 +77,7 @@ object Parser {
   def parse(input: String): Try[ReNode] = {
     @tailrec
     def loop(state: LexState, level: Int, stack: Stack, offset: Int): Try[Stack] =
-      if(offset >= input.length) {
+      if (offset >= input.length) {
         Success(stack)
       } else {
         // XXX do not use map here to have a tail recuvrsive function
@@ -90,19 +90,19 @@ object Parser {
         }
       }
 
-      loop(NormalState, 0, Nil, 0).flatMap { stack =>
-        reduceAlternatives(0, stack, input.length).flatMap {
-          case List(node) =>
-            Success(node)
-          case _ =>
-            Failure(new RegexParserException(0, "Malformed regular expression"))
-        }
-      } recoverWith {
-        case exn: RegexParserException =>
-          Failure(new RuntimeException(s"""${exn.getMessage}
+    loop(NormalState, 0, Nil, 0).flatMap { stack =>
+      reduceAlternatives(0, stack, input.length).flatMap {
+        case List(node) =>
+          Success(node)
+        case _ =>
+          Failure(new RegexParserException(0, "Malformed regular expression"))
+      }
+    } recoverWith {
+      case exn: RegexParserException =>
+        Failure(new RuntimeException(s"""${exn.getMessage}
                                           |${input.substring(exn.offset)}
                                           |^""".stripMargin))
-      }
+    }
   }
 
   // Some built-in character classes
@@ -115,7 +115,8 @@ object Parser {
   private lazy val nonSpace = space.negate
 
   /** Parses one regular expression, returning the new stack of parsed elements
-   *  and the new offset if it succeeded */
+   *  and the new offset if it succeeded
+   */
   private def parseRe(input: String, state: LexState, level: Int, stack: Stack, offset: Offset): Try[(LexState, Int, Stack, Offset)] =
     nextToken(input, state, offset).flatMap {
       case (EOI, newOffset) =>
@@ -126,23 +127,23 @@ object Parser {
         Success(state, level, SomeChar(c) :: stack, newOffset)
       case (NUMBER_CLASS(negated), newOffset) =>
         // number class is syntactic sugar for [0-9]
-        Success(state, level, CharSet(if(negated) nonDigit else digit) :: stack, newOffset)
+        Success(state, level, CharSet(if (negated) nonDigit else digit) :: stack, newOffset)
       case (WORD_CLASS(negated), newOffset) =>
         // word class is syntactic sugar for [A-Za-z0-9_]
-        Success(state, level, CharSet(if(negated) nonAlphaNum else alphaNum) :: stack, newOffset)
+        Success(state, level, CharSet(if (negated) nonAlphaNum else alphaNum) :: stack, newOffset)
       case (SPACE_CLASS(negated), newOffset) =>
         // space class is syntactic sugar for [ \t\r\n\f]
-        Success(state, level, CharSet(if(negated) nonSpace else space) :: stack, newOffset)
+        Success(state, level, CharSet(if (negated) nonSpace else space) :: stack, newOffset)
       case (STAR, newOffset) =>
         // zero or more repetition, we pop the last element from the stack and
         // push the new repeated one
         // determine whether it is greedy
         nextRawToken(input, newOffset) flatMap {
           case (CHAR('?'), newOffset) =>
-            for(newStack <- reduceOne("*", stack, offset, Star(_, false)))
+            for (newStack <- reduceOne("*", stack, offset, Star(_, false)))
               yield (state, level, newStack, newOffset)
           case (_, _) =>
-            for(newStack <- reduceOne("*", stack, offset, Star(_, true)))
+            for (newStack <- reduceOne("*", stack, offset, Star(_, true)))
               yield (state, level, newStack, newOffset)
         }
       case (PLUS, newOffset) =>
@@ -151,10 +152,10 @@ object Parser {
         // determine whether it is greedy
         nextRawToken(input, newOffset) flatMap {
           case (CHAR('?'), newOffset) =>
-            for(newStack <- reduceOne("+", stack, offset, Plus(_, false)))
+            for (newStack <- reduceOne("+", stack, offset, Plus(_, false)))
               yield (state, level, newStack, newOffset)
           case (_, _) =>
-            for(newStack <- reduceOne("+", stack, offset, Plus(_, true)))
+            for (newStack <- reduceOne("+", stack, offset, Plus(_, true)))
               yield (state, level, newStack, newOffset)
         }
       case (OPT, newOffset) =>
@@ -163,10 +164,10 @@ object Parser {
         // determine whether it is greedy
         nextRawToken(input, newOffset) flatMap {
           case (CHAR('?'), newOffset) =>
-            for(newStack <- reduceOne("?", stack, offset, Opt(_, false)))
+            for (newStack <- reduceOne("?", stack, offset, Opt(_, false)))
               yield (state, level, newStack, newOffset)
           case (_, _) =>
-            for(newStack <- reduceOne("?", stack, offset, Opt(_, true)))
+            for (newStack <- reduceOne("?", stack, offset, Opt(_, true)))
               yield (state, level, newStack, newOffset)
         }
       case (LPAR, newOffset) =>
@@ -175,11 +176,11 @@ object Parser {
       case (RPAR, newOffset) =>
         // closing capturing group, pop all elements until the matching opening temporary
         // node, and push the new captured one
-        for(newStack <- reduceCapturing(level - 1, stack, offset))
+        for (newStack <- reduceCapturing(level - 1, stack, offset))
           yield (state, level - 1, newStack, newOffset)
       case (PIPE, newOffset) =>
         // alternative, reduce until either an opening capturing group or another alternative
-        for(newStack <- reduceAlternatives(level, stack, offset))
+        for (newStack <- reduceAlternatives(level, stack, offset))
           yield (state, level, Alternative(offset) :: newStack, newOffset)
       case (LBRACKET, newOffset) =>
         // character set started
@@ -189,12 +190,12 @@ object Parser {
           case (_, _) =>
             (SetState(false, state), level + 1, CharSetStart(level, offset) :: stack, newOffset)
         }
-      case (RBRACKET, newOffset)  =>
+      case (RBRACKET, newOffset) =>
         state match {
           case SetState(negated, prevState) =>
             // character set ended, reduce the character set as an alternative between characters
             // reduce until the matching
-            for(newStack <- reduceCharSet(negated, level - 1, stack, offset))
+            for (newStack <- reduceCharSet(negated, level - 1, stack, offset))
               yield (prevState, level - 1, newStack, newOffset)
           case _ =>
             Success(state, level, SomeChar(']') :: stack, newOffset)
@@ -257,7 +258,7 @@ object Parser {
             case AVL(CharRange(c1, c2)) if c1 == c2 && !negated =>
               Success(SomeChar(c1) :: tail)
             case _ =>
-              Success(CharSet(if(negated) acc.negate else acc) :: tail)
+              Success(CharSet(if (negated) acc.negate else acc) :: tail)
           }
         case (tmp: Temporary) :: _ =>
           Failure(new RegexParserException(tmp.offset, "Malformed regular expression"))
@@ -271,7 +272,7 @@ object Parser {
           // any other character
           loop(tail, acc + CharRange(c))
         case CharSet(chars) :: tail =>
-            loop(tail, acc ++ chars)
+          loop(tail, acc ++ chars)
         case n :: tail =>
           Failure(new RegexParserException(offset, "Malformed character set"))
       }
@@ -310,7 +311,7 @@ object Parser {
     "dswDSW".contains(c)
 
   private def nextRawToken(input: String, offset: Offset): Try[(Token, Offset)] =
-    if(offset >= input.size) {
+    if (offset >= input.size) {
       // EOI reached
       Success(EOI, offset)
     } else {
@@ -319,28 +320,28 @@ object Parser {
     }
 
   private def nextToken(input: String, state: LexState, offset: Offset): Try[(Token, Offset)] =
-    if(offset >= input.size) {
+    if (offset >= input.size) {
       // EOI reached
       Success(EOI, offset)
-    } else if(input(offset) == '\\') {
-      if(offset + 1 < input.size) {
+    } else if (input(offset) == '\\') {
+      if (offset + 1 < input.size) {
         // still something to read
-        if(escapable(state, input(offset + 1))) {
+        if (escapable(state, input(offset + 1))) {
           // escaped character
           Success(CHAR(input(offset + 1)), offset + 2)
-        } else if(classable(input(offset + 1))) {
+        } else if (classable(input(offset + 1))) {
           // character class
-          if(input(offset + 1) == 'd') {
+          if (input(offset + 1) == 'd') {
             Success(NUMBER_CLASS(false), offset + 2)
-          } else if(input(offset + 1) == 's') {
+          } else if (input(offset + 1) == 's') {
             Success(SPACE_CLASS(false), offset + 2)
-          } else if(input(offset + 1) == 'w') {
+          } else if (input(offset + 1) == 'w') {
             Success(WORD_CLASS(false), offset + 2)
-          } else if(input(offset + 1) == 'D') {
+          } else if (input(offset + 1) == 'D') {
             Success(NUMBER_CLASS(true), offset + 2)
-          } else if(input(offset + 1) == 'S') {
+          } else if (input(offset + 1) == 'S') {
             Success(SPACE_CLASS(true), offset + 2)
-          } else if(input(offset + 1) == 'W') {
+          } else if (input(offset + 1) == 'W') {
             Success(WORD_CLASS(true), offset + 2)
           } else {
             Failure(new RegexParserException(offset + 1, s"Unknown escaped character '\\${input(offset + 1)}'"))
@@ -351,33 +352,33 @@ object Parser {
       } else {
         Failure(new RegexParserException(offset, "Unterminated escaped character"))
       }
-    } else if(escapable(state, input(offset))) {
-      if(input(offset) == '.')
+    } else if (escapable(state, input(offset))) {
+      if (input(offset) == '.')
         Success(DOT, offset + 1)
-      else if(input(offset) == '*')
+      else if (input(offset) == '*')
         Success(STAR, offset + 1)
-      else if(input(offset) == '+')
+      else if (input(offset) == '+')
         Success(PLUS, offset + 1)
-      else if(input(offset) == '?')
+      else if (input(offset) == '?')
         Success(OPT, offset + 1)
-      else if(input(offset) == '|')
-        Success(PIPE,  offset + 1)
-      else if(input(offset) == '(')
-        Success(LPAR,  offset + 1)
-      else if(input(offset) == ')')
-        Success(RPAR,  offset + 1)
-      else if(input(offset) == '[')
-        Success(LBRACKET,  offset + 1)
-      else if(input(offset) == ']')
-        Success(RBRACKET,  offset + 1)
-      else if(input(offset) == '^')
-        Success(CIRC,  offset + 1)
-      else if(input(offset) == '$')
-        Success(DOLLAR,  offset + 1)
+      else if (input(offset) == '|')
+        Success(PIPE, offset + 1)
+      else if (input(offset) == '(')
+        Success(LPAR, offset + 1)
+      else if (input(offset) == ')')
+        Success(RPAR, offset + 1)
+      else if (input(offset) == '[')
+        Success(LBRACKET, offset + 1)
+      else if (input(offset) == ']')
+        Success(RBRACKET, offset + 1)
+      else if (input(offset) == '^')
+        Success(CIRC, offset + 1)
+      else if (input(offset) == '$')
+        Success(DOLLAR, offset + 1)
       else
-        Success(CHAR(input(offset)),  offset + 1)
+        Success(CHAR(input(offset)), offset + 1)
     } else {
-      Success(CHAR(input(offset)),  offset + 1)
+      Success(CHAR(input(offset)), offset + 1)
     }
 
 }

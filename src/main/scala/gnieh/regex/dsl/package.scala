@@ -76,10 +76,11 @@ package object dsl {
 
   /** Matches non space characters (equivalent to `\S+`) */
   lazy val nonspaces: DslRegex =
-     nonspace.oneOrMore
+    nonspace.oneOrMore
 
   /** Matches the literal characters of the string (special regular expression characters
-   *  are considered as raw characters */
+   *  are considered as raw characters
+   */
   def raw(str: String): DslRegex =
     new DslRegex(str.map(SomeChar(_)).foldLeft(Empty: ReNode)(Concat(_, _)))
 

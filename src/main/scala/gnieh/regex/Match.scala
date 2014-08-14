@@ -24,16 +24,16 @@ class Match(val start: Int, val end: Int, groups: Vector[Int], val source: Strin
 
   /** Returns the substring matching the given group number if any */
   def group(i: Int): Option[String] =
-    if(i == 0) {
+    if (i == 0) {
       matched
     } else {
       val idx = 2 * (i - 1)
-      if(idx >= groups.size - 1)
+      if (idx >= groups.size - 1)
         None
       else {
         val startMatch = groups(idx)
         val endMatch = groups(idx + 1)
-        if(startMatch >= 0 && startMatch <= endMatch && endMatch <= source.size)
+        if (startMatch >= 0 && startMatch <= endMatch && endMatch <= source.size)
           Some(source.substring(startMatch, endMatch))
         else
           None
@@ -42,7 +42,7 @@ class Match(val start: Int, val end: Int, groups: Vector[Int], val source: Strin
 
   /** Returns the matched substring, or `None` if none */
   def matched: Option[String] =
-    if(start >= 0 && start <= end && end <= source.size)
+    if (start >= 0 && start <= end && end <= source.size)
       Some(source.substring(start, end))
     else
       None

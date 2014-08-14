@@ -63,7 +63,8 @@ class Regex(re: ReNode, source: Option[String]) extends Serializable {
     }
 
   /** Finds the first match of this regular expression in the input.
-   *  If nothing matches, returns `None`*/
+   *  If nothing matches, returns `None`
+   */
   def findFirstIn(input: String): Option[String] =
     for {
       m <- findFirstMatchIn(input)
@@ -71,7 +72,8 @@ class Regex(re: ReNode, source: Option[String]) extends Serializable {
     } yield matched
 
   /** Finds the first match of this regular expression in the input.
-   *  If nothing matches, returns `None`*/
+   *  If nothing matches, returns `None`
+   */
   def findFirstMatchIn(input: String): Option[Match] = {
     def find(startIdx: Int): Option[Match] =
       VM.exec(compiled, saved, startIdx, input) match {
@@ -102,7 +104,7 @@ class Regex(re: ReNode, source: Option[String]) extends Serializable {
           Stream.empty
         case (start, end, groups) =>
           val m = new Match(start, end, groups, input)
-          if(start == end && end == input.size)
+          if (start == end && end == input.size)
             // this is an empty match and we reach the end of the input
             // just return this match and stop
             Stream(m)

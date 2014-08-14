@@ -11,11 +11,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package gnieh
+
 package object hyphen {
 
   private[hyphen] object !:: {
     def unapply(s: String): Option[(Char, String)] =
-      if(s == null || s.isEmpty)
+      if (s == null || s.isEmpty)
         None
       else
         Some(s.head -> s.tail)

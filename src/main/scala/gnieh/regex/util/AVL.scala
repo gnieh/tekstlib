@@ -61,9 +61,9 @@ object AVL {
 private final case class AVLNode(range: CharRange, left: AVL, right: AVL) extends AVL {
 
   def +(r: CharRange): AVL =
-    if(r == range)
+    if (r == range)
       this
-    else if(r <= range)
+    else if (r <= range)
       AVLNode(range, left + r, right).repaired
     else
       AVLNode(range, left, right + r).repaired
@@ -78,18 +78,18 @@ private final case class AVLNode(range: CharRange, left: AVL, right: AVL) extend
     left.height - right.height
 
   def repaired: AVL =
-    if(factor >= -1 && factor <= 1) {
+    if (factor >= -1 && factor <= 1) {
       this
-    } else if(factor == 2) {
+    } else if (factor == 2) {
       val this1 =
-        if(left.factor == -1)
+        if (left.factor == -1)
           AVLNode(range, left.leftRotate, right)
         else
           this
       this1.rightRotate
     } else {
       val this1 =
-        if(right.factor == 1)
+        if (right.factor == 1)
           AVLNode(range, left, right.rightRotate)
         else
           this

@@ -42,14 +42,14 @@ object VM {
     @tailrec
     def loop(idx: Int, threads: ThreadQueue, lastStart: Int, lastEnd: Int, lastSaved: Vector[Int]): (Int, Int, Vector[Int]) = {
       val res =
-        if(idx >= string.size)
+        if (idx >= string.size)
           step(program, nbSaved, string.length, None, threads)
         else {
           step(program, nbSaved, idx, Some(string(idx)), threads)
         }
       res match {
         case Next(threads) =>
-          if(threads.isEmpty)
+          if (threads.isEmpty)
             // did not match
             (lastStart, lastEnd, lastSaved)
           else
@@ -75,7 +75,7 @@ object VM {
   private def step(program: Vector[Inst], nbSaved: Int, idx: Int, char: Option[Char], threads: ThreadQueue) = {
     @tailrec
     def loop(threads: ThreadQueue, acc: ThreadQueue): StepResult =
-      if(threads.isEmpty) {
+      if (threads.isEmpty) {
         // we executed all threads for this step, we can go to the next step
         Next(acc)
       } else {
@@ -85,17 +85,17 @@ object VM {
         program(pc) match {
           case AnyMatch() =>
             // any characters matches
-            loop(tail, schedule(program, RThread(if(startIdx >= 0) startIdx else idx, pc + 1, saved), acc, idx + 1))
+            loop(tail, schedule(program, RThread(if (startIdx >= 0) startIdx else idx, pc + 1, saved), acc, idx + 1))
           case CharMatch(c) if char == Some(c) =>
             // the current character matches the expected one, just try the next thread and save the
             // next instruction in this thread for the next step
-            loop(tail, schedule(program, RThread(if(startIdx >= 0) startIdx else idx, pc + 1, saved), acc, idx + 1))
+            loop(tail, schedule(program, RThread(if (startIdx >= 0) startIdx else idx, pc + 1, saved), acc, idx + 1))
           case CharMatch(_) =>
             // the current character does not match the expected one, discard this thread
             loop(tail, acc)
           case ClassMatch(tree) if char.isDefined && tree.contains(char.get) =>
             // the current character is in the expected class, schedule the next instruction in this thread and try further
-            loop(tail, schedule(program, RThread(if(startIdx >= 0) startIdx else idx, pc + 1, saved), acc, idx + 1))
+            loop(tail, schedule(program, RThread(if (startIdx >= 0) startIdx else idx, pc + 1, saved), acc, idx + 1))
           case ClassMatch(_) =>
             // the current character is not is the expected range, discard this thread
             loop(tail, acc)
@@ -108,7 +108,7 @@ object VM {
   }
 
   private def schedule(program: Vector[Inst], thread: RThread, queue: ThreadQueue, idx: Int): ThreadQueue =
-    if(queue.contains(thread))
+    if (queue.contains(thread))
       queue
     else {
       program(thread.pc) match {

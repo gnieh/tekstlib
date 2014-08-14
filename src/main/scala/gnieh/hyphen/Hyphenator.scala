@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package hyphen
+package gnieh.hyphen
 
 import scala.util.Try
 
@@ -22,7 +22,7 @@ import scala.io.Source
 /** An hyphenator instance for a given language, with given patterns
  *  and given exceptions allows you to get the possible hyphenations
  *  of a word.
- *  This is an implementation of the [Frank Liang's algorithm](http://www.tug.org/docs/liang/)
+ *  This is an implementation of the [[http://www.tug.org/docs/liang/ Frank Liang's algorithm]]
  *
  *  @author Lucas Satabin
  */
@@ -35,7 +35,8 @@ class Hyphenator(val language: String, pats: List[String], exns: List[String], v
 
   /** List of exceptions for this hyphenator.
    *  To each lower-case exception word it associate the lower-case
-   *  split word were hyphenations are possible */
+   *  split word were hyphenations are possible
+   */
   val exceptions: Map[String, List[String]] =
     (for {
       word <- exns
@@ -44,7 +45,8 @@ class Hyphenator(val language: String, pats: List[String], exns: List[String], v
 
   /** List of patterns for this hypehenator.
    *  Whenever a word is not an exception it is looked for hyphenation
-   *  using the patterns registered in this list */
+   *  using the patterns registered in this list
+   */
   val patterns: StringTrie[List[Int]] =
     pats.foldLeft(StringTrie.empty[List[Int]]) { (trie, pattern) =>
       // a pattern is a sequence of letters and a sequence of hyphenation points
@@ -67,7 +69,7 @@ class Hyphenator(val language: String, pats: List[String], exns: List[String], v
         hyphenized
       case None =>
         // ok let's do the real job here, this is no exception
-        if(word.size <= threshold) {
+        if (word.size <= threshold) {
           // however if the word is ridicilously small, there is no point in hyphenating it
           List(word)
         } else {
@@ -86,9 +88,9 @@ class Hyphenator(val language: String, pats: List[String], exns: List[String], v
                 }._2
               }
               // and then continue if needed
-              if(word == null || word.isEmpty)
+              if (word == null || word.isEmpty)
                 acc1
-              else if(patterns.derivableAt(word(0)))
+              else if (patterns.derivableAt(word(0)))
                 loopWord(word.tail, patterns.derive(word(0)), acc1)
               else
                 acc1
@@ -98,7 +100,7 @@ class Hyphenator(val language: String, pats: List[String], exns: List[String], v
             val acc1 = loopWord(word, patterns, acc)
 
             // and continue if needed
-            if(word == null || word.isEmpty)
+            if (word == null || word.isEmpty)
               acc1
             else
               loopPoints(word.tail, pointIdx + 1, acc1)
@@ -114,13 +116,13 @@ class Hyphenator(val language: String, pats: List[String], exns: List[String], v
           @tailrec
           def insertHyphens(word: String, points: List[Int], current: String, acc: List[String]): List[String] = (word, points) match {
             case (null | "", _) =>
-              if(current == "")
+              if (current == "")
                 acc.reverse
               else
                 (current :: acc).reverse
             case (c !:: cs, pt :: pts) =>
               val current1 = current + c
-              if(pt % 2 == 0)
+              if (pt % 2 == 0)
                 insertHyphens(cs, pts, current1, acc)
               else
                 insertHyphens(cs, pts, "", current1 :: acc)
@@ -139,7 +141,7 @@ object Hyphenator {
   def load(language: String): Hyphenator = {
     val patterns = {
       val stream = getClass.getResourceAsStream(s"/patterns-$language.txt")
-      if(stream != null)
+      if (stream != null)
         Source.fromInputStream(stream).getLines.filterNot(_.startsWith("#")).toList
       else
         Nil
@@ -147,7 +149,7 @@ object Hyphenator {
 
     val exceptions = {
       val stream = getClass.getResourceAsStream(s"/exceptions-$language.txt")
-      if(stream != null)
+      if (stream != null)
         Source.fromInputStream(stream).getLines.filterNot(_.startsWith("#")).toList
       else
         Nil

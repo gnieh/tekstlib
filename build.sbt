@@ -37,6 +37,17 @@ OsgiKeys.bundleSymbolicName := "org.gnieh.tekstlib"
 
 OsgiKeys.privatePackage := Seq()
 
+defaultScalariformSettings
+
+ScalariformKeys.preferences := {
+  import scalariform.formatter.preferences._
+  ScalariformKeys.preferences.value
+    .setPreference(AlignSingleLineCaseStatements, true)
+    .setPreference(DoubleIndentClassDeclaration, true)
+    .setPreference(PreserveDanglingCloseParenthesis, true)
+    .setPreference(MultilineScaladocCommentsStartOnFirstLine, true)
+}
+
 lazy val root = project in file(".")
 
 lazy val benchmarks = project in file("benchmarks") dependsOn(root)

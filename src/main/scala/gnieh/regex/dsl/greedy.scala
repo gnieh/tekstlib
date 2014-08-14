@@ -23,7 +23,8 @@ import util._
 trait DslGreedyRegex extends DslRegex {
 
   /** Turns this greedy operator (matches as many characters as possible) into
-   *  a non greedy one (matches as few characters as possible) */
+   *  a non greedy one (matches as few characters as possible)
+   */
   def nonGreedy: DslRegex
 
 }
