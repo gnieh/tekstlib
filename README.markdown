@@ -1,4 +1,4 @@
-Gnieh Tekstlib
+Gnieh Tekstlib [![Build Status](https://travis-ci.org/gnieh/tekstlib.png)](https://travis-ci.org/gnieh/tekstlib)
 ==============
 
 Gnieh Tekstlib is a library grouping standard classes and packages allowing people to work with texts and documents.
