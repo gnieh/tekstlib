@@ -10,6 +10,10 @@ crossScalaVersions := Seq("2.11.2", "2.10.4")
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
+libraryDependencies += "org.parboiled" %% "parboiled" % "2.0.0"
+
+libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value
+
 scalacOptions in (Compile, doc) ++= Seq("-doc-root-content", "rootdoc.txt")
 
 scalacOptions ++= Seq("-deprecation", "-feature")
