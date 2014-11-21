@@ -11,16 +11,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package gnieh.mustache
+package gnieh
+package mustache
 
-sealed trait Statement
-
-sealed trait Tag extends Statement
-
-final case class Variable(name: String, escaped: Boolean) extends Tag
-
-final case class Section(name: String, content: List[Statement], inverted: Boolean) extends Tag
-
-final case class Partial(name: String) extends Tag
-
-final case class Text(content: String) extends Statement
+class MustacheException(msg: String, inner: Throwable = null) extends Exception(msg, inner)

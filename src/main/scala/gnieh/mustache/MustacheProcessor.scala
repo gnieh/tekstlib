@@ -42,7 +42,7 @@ class MustacheProcessor(loader: MustacheLoader, resident: Boolean = false) {
 
   private val cache = Map.empty[String, CachedTemplate]
 
-  private class CachedTemplate(val lastLoaded: Long, val instructions: List[Stmt])
+  private class CachedTemplate(val lastLoaded: Long, val instructions: List[Statement])
 
   def render(name: String, values: Map[String, Any]): String =
     if(resident && cache.contains(name)) {
@@ -59,14 +59,14 @@ class MustacheProcessor(loader: MustacheLoader, resident: Boolean = false) {
       }
     }
 
-  private def render(instrs: List[Stmt], value: Map[String, Any]): StringBuilder =
+  private def render(instrs: List[Statement], value: Map[String, Any]): StringBuilder =
     instrs.foldLeft(new StringBuilder) { (acc, instr) =>
       instr match {
-        case Var(name, escaped) =>
+        case Variable(name, escaped) =>
           renderVar(acc, name, escaped, value)
-        case Sec(name, content, inverted) =>
+        case Section(name, content, inverted) =>
           renderSection(acc, name, content, inverted, value)
-        case Txt(txt) =>
+        case Text(txt) =>
           acc.append(txt)
         case _ =>
           throw new Exception("Should NEVER happen")
@@ -95,7 +95,7 @@ class MustacheProcessor(loader: MustacheLoader, resident: Boolean = false) {
     else
       acc
 
-  private def renderSection(acc: StringBuilder, name: String, content: List[Stmt], inverted: Boolean, value: Map[String, Any]): StringBuilder =
+  private def renderSection(acc: StringBuilder, name: String, content: List[Statement], inverted: Boolean, value: Map[String, Any]): StringBuilder =
     acc
 
 }

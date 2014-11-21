@@ -20,7 +20,7 @@ import scala.io.{
   Codec
 }
 
-import org.parboiled2.Parser.DeliveryScheme.Throw
+import scala.util.Try
 
 import scala.annotation.tailrec
 
@@ -32,11 +32,11 @@ abstract class MustacheLoader {
 
   /** Loads the template with the given name.
    *  If it is not found, returns `None` */
-  def load(name: String): Option[List[Stmt]]
+  def load(name: String): Option[List[Statement]]
 
-  protected def fromSource(source: Source) = {
-    val parser = new MustacheParser(source.mkString)
-    parser.MustacheFile.run()
+  protected def fromString(source: String): Try[List[Statement]] = {
+    val parser = new MustacheParser(source)
+    parser.run()
   }
 
 }
@@ -63,10 +63,10 @@ object MustacheLoader {
  */
 class FileSystemLoader(base: File) extends MustacheLoader {
 
-  def load(name: String): Option[List[Stmt]] = {
+  def load(name: String): Option[List[Statement]] = {
     val file = new File(base, name)
     if(file.exists) {
-      Option(fromSource(Source.fromFile(file)))
+      Option(fromString(Source.fromFile(file).mkString).get)
     } else {
       None
     }
@@ -76,10 +76,10 @@ class FileSystemLoader(base: File) extends MustacheLoader {
 
 class ClassLoaderLoader(cl: ClassLoader) extends MustacheLoader {
 
-  def load(name: String): Option[List[Stmt]] = {
+  def load(name: String): Option[List[Statement]] = {
     val resource = cl.getResource(name)
     if(resource != null) {
-      Option(fromSource(Source.fromURL(resource)))
+      Option(fromString(Source.fromURL(resource).mkString).get)
     } else {
       None
     }
@@ -89,9 +89,9 @@ class ClassLoaderLoader(cl: ClassLoader) extends MustacheLoader {
 
 class SequenceLoader(loaders: Seq[MustacheLoader]) extends MustacheLoader {
 
-  def load(name: String): Option[List[Stmt]] = {
+  def load(name: String): Option[List[Statement]] = {
     @tailrec
-    def loop(loaders: Seq[MustacheLoader]): Option[List[Stmt]] =
+    def loop(loaders: Seq[MustacheLoader]): Option[List[Statement]] =
       if(loaders.isEmpty) {
         None
       } else {

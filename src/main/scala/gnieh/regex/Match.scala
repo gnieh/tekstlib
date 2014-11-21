@@ -54,6 +54,10 @@ class Match(val start: Int, val end: Int, groups: Vector[Int], val source: Strin
       if startMatch >= 0 && startMatch <= endMatch && endMatch <= source.size
     } yield source.substring(startMatch, endMatch)
 
+  /** Returns the size of this match. */
+  def size: Int =
+    end - start
+
   override def toString =
     matched.getOrElse("")
 

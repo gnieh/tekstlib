@@ -48,7 +48,7 @@ class Regex(re: ReNode, source: Option[String]) extends Serializable {
   def this(source: String) =
     this(Parser.parse(source).get, Some(source))
 
-  private lazy val (saved, compiled) = Compiler.compile(re)
+  private val (saved, compiled) = Compiler.compile(re)
 
   //println(util.Debug.print(compiled))
 
@@ -129,6 +129,17 @@ object Regex {
 
   def apply(str: String): Regex =
     new Regex(str)
+
+  /** Escaped version of this character if it is needed. */
+  def escape(c: Char): String =
+    if(".[{()\\*+?|".contains(c))
+      f"\\$c"
+    else
+      c.toString
+
+  /** Escaped version of this string if it is needed. */
+  def escape(s: String): String =
+    s.map(escape(_)).mkString
 
 }
 
