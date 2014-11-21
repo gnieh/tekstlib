@@ -6,5 +6,6 @@ Gnieh Tekstlib is a library grouping standard classes and packages allowing peop
 
  - [[gnieh.diff `gnieh.diff`]] diff manipulation,
  - [[gnieh.hyphen `gnieh.hyphen`]] hyphenation for text in any language,
+ - [[gnieh.mustache `gnieh.mustache`]] lightweight mustache template engine,
  - [[gnieh.pp `gnieh.pp`]] pretty printing related classes,
  - [[gnieh.regex `gnieh.regex`]] regular expressions manipulation.

@@ -15,12 +15,10 @@ package gnieh.mustache
 
 sealed trait Statement
 
-sealed trait Tag extends Statement
+final case class Variable(name: String, escaped: Boolean) extends Statement
 
-final case class Variable(name: String, escaped: Boolean) extends Tag
+final case class Section(name: String, content: List[Statement], inverted: Boolean) extends Statement
 
-final case class Section(name: String, content: List[Statement], inverted: Boolean) extends Tag
-
-final case class Partial(name: String) extends Tag
+final case class Partial(name: String) extends Statement
 
 final case class Text(content: String) extends Statement

@@ -13,7 +13,7 @@
 */
 package gnieh.mustache
 
-import scala.collection.mutable.Map
+import scala.reflect._
 
 /** A mustache processor is able to process templates from several sources
  *  from classpath or filesystem, or even programmatically built.
@@ -40,24 +40,27 @@ import scala.collection.mutable.Map
  */
 class MustacheProcessor(loader: MustacheLoader, resident: Boolean = false) {
 
-  private val cache = Map.empty[String, CachedTemplate]
+  private val cache = scala.collection.mutable.Map.empty[String, CachedTemplate]
 
   private class CachedTemplate(val lastLoaded: Long, val instructions: List[Statement])
 
-  def render(name: String, values: Map[String, Any]): String =
+  def load(name: String): List[Statement] =
     if(resident && cache.contains(name)) {
-      render(cache(name).instructions, values).toString
+      cache(name).instructions
     } else {
       loader.load(name) match {
         case Some(instructions) =>
           if(resident) {
             cache(name) = new CachedTemplate(System.currentTimeMillis, instructions)
           }
-          render(instructions, values).toString
+          instructions
         case None =>
           throw new Exception(s"Unknown template $name")
       }
     }
+
+  def render(name: String, values: Map[String, Any]): String =
+    render(load(name), values).toString
 
   private def render(instrs: List[Statement], value: Map[String, Any]): StringBuilder =
     instrs.foldLeft(new StringBuilder) { (acc, instr) =>
@@ -68,8 +71,8 @@ class MustacheProcessor(loader: MustacheLoader, resident: Boolean = false) {
           renderSection(acc, name, content, inverted, value)
         case Text(txt) =>
           acc.append(txt)
-        case _ =>
-          throw new Exception("Should NEVER happen")
+        case Partial(name) =>
+          acc.append(render(load(name), value))
       }
     }
 
@@ -95,7 +98,34 @@ class MustacheProcessor(loader: MustacheLoader, resident: Boolean = false) {
     else
       acc
 
-  private def renderSection(acc: StringBuilder, name: String, content: List[Statement], inverted: Boolean, value: Map[String, Any]): StringBuilder =
-    acc
+  private def renderSection(acc: StringBuilder,
+    name: String,
+    content: List[Statement],
+    inverted: Boolean,
+    value: Map[String, Any])(
+      implicit mtag: ClassTag[Map[String, Any]],
+      mtagl: ClassTag[Seq[Map[String, Any]]],
+      ftag: ClassTag[(List[Statement], Map[String, Any], (List[Statement], Map[String, Any]) => StringBuilder) => StringBuilder]): StringBuilder =
+    value.get(name) match {
+      case Some(false) | Some(Seq()) | Some(null) | None if inverted =>
+        // it is undefined or false of empty and inverted, render content
+        acc.append(render(content, value))
+      case _ if inverted =>
+        // otherwise do not render content
+        acc
+      case Some(true) =>
+        // it is true and not inverted, render content
+        acc.append(render(content, value))
+      case Some(mtag(subValue)) if subValue.nonEmpty =>
+        // it is a non empty map, render content with sub-values
+        acc.append(render(content, subValue))
+      case Some(mtagl(subValues)) if subValues.nonEmpty =>
+        // it is a non empty list of maps, render content with sub-values
+        subValues.foldLeft(acc) { (acc, map) => acc.append(render(content, map)) }
+      case Some(ftag(fun)) =>
+        acc.append(fun(content, value, render))
+      case _ =>
+        acc
+    }
 
 }
