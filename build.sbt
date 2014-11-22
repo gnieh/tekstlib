@@ -26,6 +26,7 @@ OsgiKeys.exportPackage := Seq(
   "gnieh.regex",
   "gnieh.hyphen",
   "gnieh.diff",
+  "gnieh.mustache",
   "gnieh.pp"
 )
 
