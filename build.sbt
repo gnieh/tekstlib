@@ -23,13 +23,8 @@ osgiSettings
 resourceDirectories in Compile := List()
 
 OsgiKeys.exportPackage := Seq(
-  "gnieh.regex",
-  "gnieh.hyphen",
-  "gnieh.diff",
-  "gnieh.mustache",
-  "gnieh.io",
-  "gnieh.pp"
-)
+  "gnieh",
+  "gnieh.*")
 
 OsgiKeys.additionalHeaders := Map (
   "Bundle-Name" -> "Gnieh Text and Document Manipulation"
