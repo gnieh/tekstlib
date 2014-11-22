@@ -50,6 +50,43 @@ ScalariformKeys.preferences := {
 
 lazy val root = project in file(".")
 
+publishMavenStyle := true
+
+publishArtifact in Test := false
+
+// The Nexus repo we're publishing to.
+publishTo <<= version { (v: String) =>
+  val nexus = "https://oss.sonatype.org/"
+    if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
+    else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+
+pomIncludeRepository := { x => false }
+
+pomExtra := (
+  <scm>
+    <url>https://github.com/gnieh/tekstlib</url>
+    <connection>scm:git:git://github.com/gnieh/tekstlib.git</connection>
+    <developerConnection>scm:git:git@github.com:gnieh/tekstlib.git</developerConnection>
+    <tag>HEAD</tag>
+  </scm>
+  <developers>
+    <developer>
+      <id>satabin</id>
+      <name>Lucas Satabin</name>
+      <email>lucas.satabin@gnieh.org</email>
+    </developer>
+  </developers>
+  <ciManagement>
+    <system>travis</system>
+    <url>https://travis-ci.org/#!/gnieh/tekstlib</url>
+  </ciManagement>
+  <issueManagement>
+    <system>github</system>
+    <url>https://github.com/gnieh/tekstlib/issues</url>
+  </issueManagement>
+)
+
 lazy val benchmarks = project in file("benchmarks") dependsOn(root)
 
 libraryDependencies in benchmarks += "com.github.axel22" %% "scalameter" % "0.5-M2"
