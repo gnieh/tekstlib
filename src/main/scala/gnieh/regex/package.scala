@@ -26,7 +26,7 @@ package object regex {
 
   }
 
-  implicit class RegexContext(private val sc: StringContext) extends AnyVal {
+  implicit class RegexContext(val sc: StringContext) extends AnyVal {
 
     def re = sc.parts.mkString.re
 
