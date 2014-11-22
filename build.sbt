@@ -86,7 +86,9 @@ pomExtra := (
 
 lazy val benchmarks = project in file("benchmarks") dependsOn(root)
 
-libraryDependencies in benchmarks += "com.github.axel22" %% "scalameter" % "0.5-M2"
+scalaVersion in benchmarks := "2.11.4"
+
+libraryDependencies in benchmarks += "com.storm-enroute" %% "scalameter" % "0.6"
 
 testFrameworks in benchmarks += new TestFramework("org.scalameter.ScalaMeterFramework")
 
