@@ -12,7 +12,7 @@
 * limitations under the License.
 */
 package gnieh
-package io
+package string
 
 import regex.{
   Regex,

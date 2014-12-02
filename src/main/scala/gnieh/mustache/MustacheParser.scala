@@ -14,7 +14,7 @@
 package gnieh
 package mustache
 
-import io.StringScanner
+import string.StringScanner
 
 import regex._
 
