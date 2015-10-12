@@ -15,9 +15,10 @@
 */
 package gnieh.regex
 
-import org.scalameter._
+import org.scalameter.api._
+import org.scalameter.picklers.noPickler._
 
-class SimpleBenchmark extends PerformanceTest.Microbenchmark {
+class SimpleBenchmark extends Bench.ForkedTime {
 
   val text = """Et licet quocumque oculos flexeris feminas adfatim multas spectare cirratas, quibus, si nupsissent, per aetatem ter iam
                |nixus poterat suppetere liberorum, ad usque taedium pedibus pavimenta tergentes iactari volucriter gyris, dum exprimunt innumera
@@ -54,7 +55,7 @@ class SimpleBenchmark extends PerformanceTest.Microbenchmark {
         re
       }
 
-  val inputs = Gen.tupled(textGen, reGen)
+  val inputs = Gen.crossProduct(textGen, reGen)
 
   performance of "New regular expression" in {
     measure method "findFirstIn" in {

@@ -15,9 +15,10 @@
 */
 package gnieh.regex
 
-import org.scalameter._
+import org.scalameter.api._
+import org.scalameter.picklers.noPickler._
 
-class JavaComparisonBenchmark extends PerformanceTest.Microbenchmark {
+class JavaComparisonBenchmark extends Bench.LocalTime {
 
   val gniehRe = "abc|abd|abe|abf".re
 

@@ -15,11 +15,12 @@
 */
 package gnieh.mustache
 
-import org.scalameter._
+import org.scalameter.api._
+import org.scalameter.picklers.noPickler._
 
 import java.io.File
 
-class SimpleBenchmark extends PerformanceTest.Quickbenchmark {
+class SimpleBenchmark extends Bench.LocalTime {
 
   val template = """Hello {{name}},
                    |This is a simple template featuring several stuffs:

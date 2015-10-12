@@ -86,10 +86,14 @@ pomExtra := (
 
 lazy val benchmarks = project in file("benchmarks") dependsOn(root)
 
-scalaVersion in benchmarks := "2.11.4"
+scalaVersion in benchmarks := "2.11.7"
 
-libraryDependencies in benchmarks += "com.storm-enroute" %% "scalameter" % "0.6"
+libraryDependencies in benchmarks += "com.storm-enroute" %% "scalameter" % "0.7"
 
 testFrameworks in benchmarks += new TestFramework("org.scalameter.ScalaMeterFramework")
 
-parallelExecution in Test := false
+parallelExecution in (benchmarks, Test) := false
+
+logBuffered in benchmarks := false
+
+scalacOptions in benchmarks ++= Seq("-deprecation", "-feature")

@@ -17,23 +17,24 @@ package gnieh.regex
 
 import compiler._
 
-import org.scalameter._
+import org.scalameter.api._
+import org.scalameter.picklers.noPickler._
 
-class CompilationBenchmark extends PerformanceTest.Microbenchmark {
+class CompilationBenchmark extends Bench.ForkedTime {
 
-    val re = Gen.single("re")("([-A-Za-z0-9_.!~*'();/?:@&=+$,# ]|%[A-Fa-f0-9]{2})+")
+  val re = Gen.single("re")("([-A-Za-z0-9_.!~*'();/?:@&=+$,# ]|%[A-Fa-f0-9]{2})+")
 
-    performance of "parsing" in {
+  performance of "parsing" in {
 
-      measure method "parse" in {
+    measure method "parse" in {
 
-        using(re) in { re =>
-          Parser.parse(re)
-        }
-
+      using(re) in { re =>
+        Parser.parse(re)
       }
 
     }
+
+  }
 
 }
 
