@@ -4,9 +4,9 @@ name := "tekstlib"
 
 version := "0.1.0-SNAPSHOT"
 
-scalaVersion := "2.11.4"
+scalaVersion := "2.11.7"
 
-crossScalaVersions := Seq("2.11.4", "2.10.4")
+crossScalaVersions := Seq("2.11.7", "2.10.4")
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
