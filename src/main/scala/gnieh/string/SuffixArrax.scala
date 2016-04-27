@@ -17,15 +17,15 @@ import scala.annotation.tailrec
 
 /** Implementation of suffix-array.
  *
- * Implemented according to
- * Kärkkäinen, Juha, and Peter Sanders.
- * "Simple linear work suffix array construction."
- * Automata, Languages and Programming. Springer Berlin Heidelberg, 2003. 943-955.
+ *  Implemented according to
+ *  Kärkkäinen, Juha, and Peter Sanders.
+ *  "Simple linear work suffix array construction."
+ *  Automata, Languages and Programming. Springer Berlin Heidelberg, 2003. 943-955.
  *
- * Source code translated from C to Scala by Lucas Satabin. Original C sources
- * were found at <a
- * href="http://people.mpi-inf.mpg.de/~sanders/programs/suffix/drittel.C"
- * >http://people.mpi-inf.mpg.de/~sanders/programs/suffix/drittel.C</a>
+ *  Source code translated from C to Scala by Lucas Satabin. Original C sources
+ *  were found at <a
+ *  href="http://people.mpi-inf.mpg.de/~sanders/programs/suffix/drittel.C"
+ *  >http://people.mpi-inf.mpg.de/~sanders/programs/suffix/drittel.C</a>
  *
  *  @author Lucas Satabin
  */
@@ -53,15 +53,15 @@ trait SuffixArray {
   private def radixPass(a: Array[Int], b: Array[Int], r: Array[Int], roffset: Int, n: Int, k: Int): Unit = {
     // count occurrences
     val c = Array.fill(k + 1)(0)
-    for(i <- 0 until n)
+    for (i <- 0 until n)
       c(r(a(i) + roffset)) += 1
     var sum = 0
-    for(i <- 0 to k) {
+    for (i <- 0 to k) {
       val t = c(i)
       c(i) = sum
       sum += t
     }
-    for(i <- 0 until n) {
+    for (i <- 0 until n) {
       b(c(r(a(i) + roffset))) = a(i)
       c(r(a(i) + roffset)) += 1
     }
@@ -98,23 +98,23 @@ trait SuffixArray {
     }
 
     // lsb radix sort the mod 1 and mod 2 triples
-    radixPass(s12 , sa12, s, 2, n02, k);
-    radixPass(sa12, s12 , s, 1, n02, k);
-    radixPass(s12 , sa12, s, 0, n02, k);
+    radixPass(s12, sa12, s, 2, n02, k);
+    radixPass(sa12, s12, s, 1, n02, k);
+    radixPass(s12, sa12, s, 0, n02, k);
 
     // find lexicographic names of triples
     var name = 0
     var c0 = -1
     var c1 = -1
     var c2 = -1
-    for(i <- 0 until n02) {
-      if(s(sa12(i)) != c0 || s(sa12(i) + 1) != c1 || s(sa12(i) + 2) != c2) {
+    for (i <- 0 until n02) {
+      if (s(sa12(i)) != c0 || s(sa12(i) + 1) != c1 || s(sa12(i) + 2) != c2) {
         name += 1
         c0 = s(sa12(i))
         c1 = s(sa12(i) + 1)
         c2 = s(sa12(i) + 2)
       }
-      if(sa12(i) % 3 == 1) {
+      if (sa12(i) % 3 == 1) {
         s12(sa12(i) / 3) = name
       } else {
         s12(sa12(i) / 3 + n0) = name
@@ -122,15 +122,15 @@ trait SuffixArray {
     }
 
     // recurse if names are not yet unique
-    if(name < n02) {
+    if (name < n02) {
       suffixArray(s12, sa12, n02, name)
       // store unique names in s12 using the suffix array
-      for(i <- 0 until n02) {
+      for (i <- 0 until n02) {
         s12(sa12(i)) = i + 1
       }
     } else {
       // generate the suffix array of s12 directly
-      for(i <- 0 until n02)
+      for (i <- 0 until n02)
         sa12(s12(i) - 1) = i
     }
 
@@ -149,24 +149,24 @@ trait SuffixArray {
     var p = 0
     var t = n0 - n1
     var k_ = 0
-    while(k_ < n) {
+    while (k_ < n) {
 
-      @inline def getI = if(sa12(t) < n0) sa12(t) * 3 + 1 else (sa12(t) - n0) * 3 + 2
+      @inline def getI = if (sa12(t) < n0) sa12(t) * 3 + 1 else (sa12(t) - n0) * 3 + 2
       val i = getI
       val j = sa0(p)
       val c =
-        if(sa12(t) < n0)
+        if (sa12(t) < n0)
           leq(s(i), s12(sa12(t) + n0), s(j), s12(j / 3))
         else
           leq(s(i), s(i + 1), s12(sa12(t) - n0 + 1), s(j), s(j + 1), s12(j / 3 + n0))
-      if(c) {
+      if (c) {
         // suffix from sa12 is smaller
         sa(k_) = i
         t += 1
-        if(t == n02) {
+        if (t == n02) {
           // done --- only sa0 suffixes left
           k_ += 1
-          while(p < n0) {
+          while (p < n0) {
             sa(k_) = sa0(p)
             k_ += 1
             p += 1
@@ -176,10 +176,10 @@ trait SuffixArray {
         // suffix from sa0 is maller
         sa(k_) = j
         p += 1
-        if(p == n0) {
+        if (p == n0) {
           // done --- only sa12 suffixes left
           k_ += 1
-          while(t < n02) {
+          while (t < n02) {
             sa(k_) = getI
             t += 1
             k_ += 1

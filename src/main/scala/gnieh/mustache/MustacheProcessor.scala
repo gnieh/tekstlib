@@ -43,14 +43,15 @@ class MustacheProcessor(loader: MustacheLoader, resident: Boolean = false) {
   private class CachedTemplate(val lastLoaded: Long, val instructions: List[Statement])
 
   /** Load a template and returns its representation. If the template
-   *  was cached, this version is returned unles `force` is set to `true`. */
+   *  was cached, this version is returned unles `force` is set to `true`.
+   */
   def load(name: String, force: Boolean = false): List[Statement] =
-    if(!force && resident && cache.contains(name)) {
+    if (!force && resident && cache.contains(name)) {
       cache(name).instructions
     } else {
       loader.load(name) match {
         case Some(instructions) =>
-          if(resident) {
+          if (resident) {
             cache(name) = new CachedTemplate(System.currentTimeMillis, instructions)
           }
           instructions
@@ -60,12 +61,14 @@ class MustacheProcessor(loader: MustacheLoader, resident: Boolean = false) {
     }
 
   /** Render the template with the given name. The name is the complete template file name
-   *  including the extension. No extension is added to the name. */
+   *  including the extension. No extension is added to the name.
+   */
   def render(name: String, values: Map[String, Any]): String =
     render(load(name), values)
 
   /** Render the template given as a string. The parsed template is not cached, hence each
-   *  call to this method with the same string parses the string. */
+   *  call to this method with the same string parses the string.
+   */
   def renderString(template: String, values: Map[String, Any]): String =
     render(new MustacheParser(template).run().get, values)
 
@@ -94,7 +97,8 @@ class MustacheProcessor(loader: MustacheLoader, resident: Boolean = false) {
 
   /** Returns the last time the given template was loaded into the cache
    *  if it is cached. Returns the number of milliseconds between the current
-   *  time and midnight, January 1, 1970 UTC. */
+   *  time and midnight, January 1, 1970 UTC.
+   */
   def lastTimeCached(name: String): Option[Long] =
     cache.get(name).map(_.lastLoaded)
 
@@ -108,12 +112,12 @@ class MustacheProcessor(loader: MustacheLoader, resident: Boolean = false) {
           case '<'  => "&lt;"
           case '>'  => "&gt;"
           case _    => c
-      })
+        })
     }
 
   private def renderVar(acc: StringBuilder, name: String, escaped: Boolean, value: Map[String, Any]): StringBuilder =
-    if(value.contains(name))
-      if(escaped)
+    if (value.contains(name))
+      if (escaped)
         acc.append(escape(value(name).toString))
       else
         acc.append(value(name))

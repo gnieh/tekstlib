@@ -39,11 +39,12 @@ class StringScanner(private var _source: String) {
     _pointer
 
   /** Sets the current pointer at the given position.
-   *  Reset the `lastMatched` data. */
+   *  Reset the `lastMatched` data.
+   */
   def pointer_=(pos: Int): Unit = {
-    if(pos < 0)
+    if (pos < 0)
       _pointer = 0
-    else if(pos > _source.size)
+    else if (pos > _source.size)
       _pointer = _source.size
     else
       _pointer = pos
@@ -56,7 +57,7 @@ class StringScanner(private var _source: String) {
 
   /** Returns the next character, or `None` if EOS was reached. */
   def get(): Option[Char] =
-    if(_pointer == _source.size) {
+    if (_pointer == _source.size) {
       None
     } else {
       // advance the _pointer
@@ -70,12 +71,13 @@ class StringScanner(private var _source: String) {
 
   /** Tries to match the given regular expression and returns the matched result, advancing
    *  the _pointer by the size of the matching substring.
-   *  If it did not match, the pointer is left unchanged, and `None` is returned. */
+   *  If it did not match, the pointer is left unchanged, and `None` is returned.
+   */
   def scan(re: Regex): Option[String] =
     check(re) match {
       case Some(s) =>
         _pointer += s.size
-        _bol = _pointer == 0 || (if(s.nonEmpty) s.last == '\n' else _bol)
+        _bol = _pointer == 0 || (if (s.nonEmpty) s.last == '\n' else _bol)
         Some(s)
       case None =>
         None
@@ -84,12 +86,13 @@ class StringScanner(private var _source: String) {
   /** Scans the string until the pattern is matched and consumed.
    *  Returns the substring up to and including the end of the match, advancing the
    *  pointer by the size of the matching substring.
-   *  If it did not match, the pointer is left unchanged, and `None` is returned. */
+   *  If it did not match, the pointer is left unchanged, and `None` is returned.
+   */
   def scanUntil(re: Regex): Option[String] =
     checkUntil(re) match {
       case Some(s) =>
         _pointer += s.size
-        _bol = _pointer == 0 || (if(s.nonEmpty) s.last == '\n' else _bol)
+        _bol = _pointer == 0 || (if (s.nonEmpty) s.last == '\n' else _bol)
         Some(s)
       case None =>
         None
@@ -98,17 +101,19 @@ class StringScanner(private var _source: String) {
   /** Scans the string until the pattern is matched but not consumed.
    *  Returns the substring up to and excluding the start of the match, advancing the
    *  pointer by the size of the matching substring.
-   *  If it did not match, the pointer is left unchanged, and `None` is returned. */
+   *  If it did not match, the pointer is left unchanged, and `None` is returned.
+   */
   def scanUntilExclusive(re: Regex): String = {
     val s = checkUntilExclusive(re)
     _pointer += s.size
-    _bol = _pointer == 0 || (if(s.nonEmpty) s.last == '\n' else _bol)
+    _bol = _pointer == 0 || (if (s.nonEmpty) s.last == '\n' else _bol)
     s
   }
 
   /** Tries to skip the given regular expression starting at the current _pointer.
    *  Advances the pointer by the size of the matching string, and returns this size.
-   *  If it did not match, `0` is returned and the pointer is not advanced. */
+   *  If it did not match, `0` is returned and the pointer is not advanced.
+   */
   def skip(re: Regex): Int =
     scan(re) match {
       case Some(s) =>
@@ -118,7 +123,8 @@ class StringScanner(private var _source: String) {
     }
 
   /** Advances the pointer until pattern is matched and consumed.
-   *  Returns the size of consumed string. */
+   *  Returns the size of consumed string.
+   */
   def skipUntil(re: Regex): Int =
     scanUntil(re) match {
       case Some(s) =>
@@ -128,12 +134,14 @@ class StringScanner(private var _source: String) {
     }
 
   /** Advances the pointer until pattern is matched but not consumed.
-   *  Returns the size of consumed string. */
+   *  Returns the size of consumed string.
+   */
   def skipUntilExclusive(re: Regex): Int =
     scanUntilExclusive(re).size
 
   /** Returns the same result as `scan` would return without advancing the pointer.
-   *  The `lastMatched` however is updated. */
+   *  The `lastMatched` however is updated.
+   */
   def check(re: Regex): Option[String] =
     re.findFirstMatchIn(_source.substring(_pointer)) match {
       case Some(m @ Match(0, _)) =>
@@ -146,7 +154,8 @@ class StringScanner(private var _source: String) {
     }
 
   /** Returns the same result as `scanUntil` would return without advancing the pointer.
-   *  The `lastMatched` however is updated. */
+   *  The `lastMatched` however is updated.
+   */
   def checkUntil(re: Regex): Option[String] =
     re.findFirstMatchIn(_source.substring(_pointer)) match {
       case Some(m) =>
@@ -159,7 +168,8 @@ class StringScanner(private var _source: String) {
     }
 
   /** Returns the same result as `scanUntilExclusive` would return without advancing the pointer.
-   *  The `lastMatched` however is updated. */
+   *  The `lastMatched` however is updated.
+   */
   def checkUntilExclusive(re: Regex): String = {
     val rest = _source.substring(_pointer)
     re.findFirstMatchIn(rest) match {
@@ -174,7 +184,8 @@ class StringScanner(private var _source: String) {
   }
 
   /** Checks that the string amtches the regular expression at the current pointer.
-   *  Neither the `lastMatched` nor the `pointer` are updated. */
+   *  Neither the `lastMatched` nor the `pointer` are updated.
+   */
   def matches(re: Regex): Boolean =
     re.findFirstMatchIn(_source.substring(_pointer)) match {
       case Some(Match(0, _)) => true
@@ -183,7 +194,8 @@ class StringScanner(private var _source: String) {
 
   /** Extracts the string starting at the current pointer of the given length.
    *  If fewer characters are left in the string, then the maximum possible
-   *  number of characters is returned. */
+   *  number of characters is returned.
+   */
   def peek(length: Int): String =
     _source.substring(_pointer, math.min(_source.size - _pointer, length))
 
@@ -197,7 +209,7 @@ class StringScanner(private var _source: String) {
 
   /** Returns the (possibly empty) rest string starting at the current pointer. */
   def rest(): String =
-    if(eos)
+    if (eos)
       ""
     else
       _source.substring(_pointer)

@@ -31,7 +31,8 @@ import scala.annotation.tailrec
 abstract class MustacheLoader {
 
   /** Loads the template with the given name.
-   *  If it is not found, returns `None` */
+   *  If it is not found, returns `None`
+   */
   def load(name: String): Option[List[Statement]]
 
   protected def fromString(source: String): Try[List[Statement]] = {
@@ -65,7 +66,7 @@ class FileSystemLoader(base: File) extends MustacheLoader {
 
   def load(name: String): Option[List[Statement]] = {
     val file = new File(base, name)
-    if(file.exists) {
+    if (file.exists) {
       Option(fromString(Source.fromFile(file).mkString).get)
     } else {
       None
@@ -78,7 +79,7 @@ class ClassLoaderLoader(cl: ClassLoader) extends MustacheLoader {
 
   def load(name: String): Option[List[Statement]] = {
     val resource = cl.getResource(name)
-    if(resource != null) {
+    if (resource != null) {
       Option(fromString(Source.fromURL(resource).mkString).get)
     } else {
       None
@@ -92,7 +93,7 @@ class SequenceLoader(loaders: Seq[MustacheLoader]) extends MustacheLoader {
   def load(name: String): Option[List[Statement]] = {
     @tailrec
     def loop(loaders: Seq[MustacheLoader]): Option[List[Statement]] =
-      if(loaders.isEmpty) {
+      if (loaders.isEmpty) {
         None
       } else {
         loaders.head.load(name) match {

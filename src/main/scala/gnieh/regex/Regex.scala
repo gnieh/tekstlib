@@ -132,7 +132,7 @@ object Regex {
 
   /** Escaped version of this character if it is needed. */
   def escape(c: Char): String =
-    if(".[{()\\*+?|".contains(c))
+    if (".[{()\\*+?|".contains(c))
       f"\\$c"
     else
       c.toString

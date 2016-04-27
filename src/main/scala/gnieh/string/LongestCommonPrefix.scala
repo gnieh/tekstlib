@@ -31,26 +31,25 @@ trait LongestCommonPrefix {
 
     val n = sa.length
     val rank = Array.ofDim[Int](n)
-    for(i <- 0 until n) {
+    for (i <- 0 until n) {
       rank(sa(i)) = i
     }
 
     val s1 = s + 0.toChar
     val height = Array.ofDim[Int](n)
     var h = 0
-    for(i <- 0 until n) {
-      if(rank(i) > 0) {
+    for (i <- 0 until n) {
+      if (rank(i) > 0) {
         val k = sa(rank(i) - 1)
-        while(s1(i + h) == s1(k + h)) {
+        while (s1(i + h) == s1(k + h)) {
           h += 1
         }
         height(rank(i)) = h
-        if(h > 0) {
+        if (h > 0) {
           h -= 1
         }
       }
     }
-
 
     height.toVector
   }

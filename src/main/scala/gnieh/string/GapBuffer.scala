@@ -56,18 +56,19 @@ class GapBuffer(initialSize: Int) {
 
   /** Moves the cursor by the given amount of characters.
    *  A positive `delta` moves the cursor to the right, a negative one moves
-   *  it to the left. */
+   *  it to the left.
+   */
   def moveBy(delta: Int): Unit =
-    if(_gapStart + delta > contentSize || _gapStart + delta < 0) {
+    if (_gapStart + delta > contentSize || _gapStart + delta < 0) {
       // check delta bounds
       throw new Exception(f"Cursor index out of buffer: ${cursor + delta}")
-    } else if(delta != 0) {
+    } else if (delta != 0) {
       val oldStart = _gapStart
       val oldEnd = _gapEnd
       // compute the new gap position and size
-      _gapStart +=  delta
+      _gapStart += delta
       _gapEnd = math.min(_gapEnd + delta, _size)
-      if(delta > 0) {
+      if (delta > 0) {
         // moved to the right
         System.arraycopy(_buffer, oldEnd, _buffer, oldStart, delta)
       } else {
@@ -77,61 +78,61 @@ class GapBuffer(initialSize: Int) {
       regap()
     }
 
-    /** Insert the given character at the current cursor position */
-    def insert(c: Char): Unit = {
-      _buffer(_gapStart) = c
-      _gapStart += 1
-      regap()
-    }
+  /** Insert the given character at the current cursor position */
+  def insert(c: Char): Unit = {
+    _buffer(_gapStart) = c
+    _gapStart += 1
+    regap()
+  }
 
-    /** Inserts the given string at the current cursor position */
-    def insert(s: String): Unit = {
-      @tailrec
-      def loop(s: String): Unit =
-        if(s.size <= gapSize) {
-          s.getChars(0, s.size, _buffer, _gapStart)
-          _gapStart += s.size
-          regap()
-        } else {
-          val size = gapSize
-          s.getChars(0, size, _buffer, _gapStart)
-          _gapStart += size
-          regap()
-          loop(s.substring(size))
-        }
-      loop(s)
-    }
-
-    /** Returns the content of this buffer as a string. */
-    override def toString: String =
-      if(gapSize == 0) {
-        new String(_buffer)
+  /** Inserts the given string at the current cursor position */
+  def insert(s: String): Unit = {
+    @tailrec
+    def loop(s: String): Unit =
+      if (s.size <= gapSize) {
+        s.getChars(0, s.size, _buffer, _gapStart)
+        _gapStart += s.size
+        regap()
       } else {
-        val start = new String(_buffer, 0, _gapStart)
-        val end = new String(_buffer, _gapEnd, _size - _gapEnd)
-        start + end
+        val size = gapSize
+        s.getChars(0, size, _buffer, _gapStart)
+        _gapStart += size
+        regap()
+        loop(s.substring(size))
       }
+    loop(s)
+  }
 
-    // recreate a gap, expanding the buffer as needed
-    private def regap(): Unit = if(gapSize == 0) {
-      // only regap if gap is empty
-
-      val newSize = math.min(_size.toLong * 3 / 2, Int.MaxValue).toInt
-
-      if(newSize == _size)
-        throw new Exception("Buffer is full")
-
-      val newBuffer = Array.ofDim[Char](newSize)
-
-      val endLength = _size - _gapEnd
-
-      System.arraycopy(_buffer, 0, newBuffer, 0, _gapStart)
-      System.arraycopy(_buffer, _gapEnd, newBuffer, newSize - endLength, endLength)
-
-      _gapEnd = newSize - endLength
-
-      _buffer = newBuffer
-
+  /** Returns the content of this buffer as a string. */
+  override def toString: String =
+    if (gapSize == 0) {
+      new String(_buffer)
+    } else {
+      val start = new String(_buffer, 0, _gapStart)
+      val end = new String(_buffer, _gapEnd, _size - _gapEnd)
+      start + end
     }
+
+  // recreate a gap, expanding the buffer as needed
+  private def regap(): Unit = if (gapSize == 0) {
+    // only regap if gap is empty
+
+    val newSize = math.min(_size.toLong * 3 / 2, Int.MaxValue).toInt
+
+    if (newSize == _size)
+      throw new Exception("Buffer is full")
+
+    val newBuffer = Array.ofDim[Char](newSize)
+
+    val endLength = _size - _gapEnd
+
+    System.arraycopy(_buffer, 0, newBuffer, 0, _gapStart)
+    System.arraycopy(_buffer, _gapEnd, newBuffer, newSize - endLength, endLength)
+
+    _gapEnd = newSize - endLength
+
+    _buffer = newBuffer
+
+  }
 
 }

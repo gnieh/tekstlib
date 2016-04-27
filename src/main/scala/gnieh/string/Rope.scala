@@ -94,9 +94,9 @@ object Rope {
 
   /** Creates a rope from a character array. */
   def apply(a: Array[Char]): Rope =
-    if(a == null || a.isEmpty) {
+    if (a == null || a.isEmpty) {
       RopeEmpty
-    } else if(a.size > 2048) {
+    } else if (a.size > 2048) {
       val (a1, a2) = a.splitAt(a.size / 2)
       Rope(a1) + Rope(a2)
     } else {
@@ -108,7 +108,7 @@ object Rope {
     RopeLeaf(Array(c))
 
   private[string] def balance(r: Rope): Rope =
-    if(r.isBalanced)
+    if (r.isBalanced)
       r
     else
       fromList(r.toList)
@@ -165,7 +165,6 @@ private case object RopeEmpty extends Rope {
   def foldRight[Acc](zero: Acc)(f: (Char, Acc) => Acc): Acc =
     zero
 
-
   private[string] val isBalanced: Boolean =
     true
 
@@ -183,19 +182,19 @@ private final case class RopeConcat(left: Rope, right: Rope) extends Rope {
     1 + math.max(left.depth, right.depth)
 
   def charAt(idx: Int): Char =
-    if(idx < 0)
+    if (idx < 0)
       throw new StringIndexOutOfBoundsException(f"String index out of range: $idx")
-    else if(idx >= size)
+    else if (idx >= size)
       right.charAt(idx - size)
     else
       left.charAt(idx)
 
   def splitAt(idx: Int): (Rope, Rope) =
-    if(idx < 0) {
+    if (idx < 0) {
       (RopeEmpty, this)
-    } else if(idx >= size) {
+    } else if (idx >= size) {
       (this, RopeEmpty)
-    } else if(idx >= left.size) {
+    } else if (idx >= left.size) {
       val (r1, r2) = right.splitAt(idx - left.size)
       (left + r1, r2)
     } else {

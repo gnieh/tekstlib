@@ -85,7 +85,7 @@ class MustacheParser(val input: String) {
     }
 
   def parseStatement(sections: SectionStack): Try[SectionStack] =
-    if(scanner.matches(paddedOpenRe))
+    if (scanner.matches(paddedOpenRe))
       parseTag(sections)
     else
       parseText(sections)
@@ -118,14 +118,14 @@ class MustacheParser(val input: String) {
               case Some(tpe) =>
 
                 // the closing type is usually empty, except for the mustache notation and set delimiter
-                val ctpe = if(tpe == "{") "}" else if(tpe == "=") "=" else ""
+                val ctpe = if (tpe == "{") "}" else if (tpe == "=") "=" else ""
 
                 // skip the potential whitespaces
                 scanner.skip(whiteSpaceRe)
 
                 val closingRe = f"\\s*$ctpe$closeTag".re
 
-                val content = if(anyContent.contains(tpe)) {
+                val content = if (anyContent.contains(tpe)) {
                   // any content is allowed here, we scan until the closing tag
                   Some(scanner.scanUntilExclusive(closingRe))
                 } else {
@@ -134,16 +134,16 @@ class MustacheParser(val input: String) {
                 }
 
                 // eat the end of the tag
-                if(scanner.skip(closingRe) == 0) {
+                if (scanner.skip(closingRe) == 0) {
                   Failure(new MustacheException("Unclosed tag"))
                 } else {
 
                   // clean whitespaces when needed i.e. the tag is the only non whitespace
                   // character of the line
-                  val stmts2 = if(bol && skipWhitespace.contains(tpe) && scanner.matches(eolRe)) {
+                  val stmts2 = if (bol && skipWhitespace.contains(tpe) && scanner.matches(eolRe)) {
                     scanner.skip(eolRe)
                     stmts1
-                  } else if(bol) {
+                  } else if (bol) {
                     padding match {
                       case Some(p) if p.nonEmpty =>
                         Text(p) :: stmts1
@@ -186,7 +186,7 @@ class MustacheParser(val input: String) {
                           // opening inverted section
                           parseStatement((c, true, Nil) :: (name, inverted, stmts2) :: rest)
                         case "/" =>
-                          if(name == c) {
+                          if (name == c) {
                             rest match {
                               case (lastName, lastInverted, lastStmts) :: rest1 =>
                                 Success(
@@ -219,7 +219,7 @@ class MustacheParser(val input: String) {
     sections match {
       case (name, inverted, stmts) :: rest =>
         val txt = scanner.scanUntilExclusive(paddedOpenRe)
-        if(txt.nonEmpty)
+        if (txt.nonEmpty)
           Success((name, inverted, Text(txt) :: stmts) :: rest)
         else
           Success(sections)
