@@ -23,12 +23,18 @@ import scala.util.Failure
  *
  *  @author Lucas Satabin
  */
-class Regex(re: ReNode, source: Option[String], impl: RegexImpl) extends Serializable {
+class Regex(re: Either[ReNode, String], impl: RegexImpl) extends Serializable {
 
   def this(source: String, impl: RegexImpl) =
-    this(Parser.parse(source).get, Some(source), impl)
+    this(Right(source), impl)
 
-  private val (saved, compiled) = impl.compile(re)
+  def this(re: ReNode, impl: RegexImpl) =
+    this(Left(re), impl)
+
+  private val (saved, compiled) = re match {
+    case Left(re)      => impl.compile(re)
+    case Right(source) => impl.compile(Parser.parse(source).get)
+  }
 
   //println(util.Debug.print(compiled))
 
@@ -101,7 +107,10 @@ class Regex(re: ReNode, source: Option[String], impl: RegexImpl) extends Seriali
     } yield m.subgroups
 
   override def toString =
-    source.getOrElse(re.toString)
+    re match {
+      case Left(re)  => re.toString
+      case Right(re) => re
+    }
 
 }
 
