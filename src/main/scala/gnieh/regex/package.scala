@@ -19,16 +19,43 @@ package object regex {
 
   type CharClass = NumericRange[Char]
 
-  implicit class RegexString(val string: String) extends AnyVal {
+  /** The non backtracking, VM implementation of regular expression. Import this object to use it. */
+  object bytecode {
 
-    def re: Regex =
-      Regex(string)
+    implicit val impl = vm.BytecodeImpl
+
+    implicit class RegexString(val string: String) extends AnyVal {
+
+      def re: Regex =
+        Regex(string)
+
+    }
+
+    implicit class RegexContext(val sc: StringContext) extends AnyVal {
+
+      def re = sc.parts.mkString.re
+
+    }
 
   }
 
-  implicit class RegexContext(val sc: StringContext) extends AnyVal {
+  /** The TDFA implementation of regular expression. Import this object to use it. */
+  object automaton {
 
-    def re = sc.parts.mkString.re
+    implicit val impl = tdfa.TDfaImpl
+
+    implicit class RegexString(val string: String) extends AnyVal {
+
+      def re: Regex =
+        Regex(string)
+
+    }
+
+    implicit class RegexContext(val sc: StringContext) extends AnyVal {
+
+      def re = sc.parts.mkString.re
+
+    }
 
   }
 

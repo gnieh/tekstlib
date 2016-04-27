@@ -37,68 +37,67 @@ package object dsl {
     CharRange(c)
 
   /** Matches any character */
-  lazy val any: DslRegex =
+  def any(implicit impl: RegexImpl): DslRegex =
     new DslRegex(AnyChar)
 
   /** Matches any character in the classes. A character class
    *  is either a single character `c`, a range `a-z`
    */
-  def any(classes: CharRange*): DslRegex =
+  def any(classes: CharRange*)(implicit impl: RegexImpl): DslRegex =
     new DslRegex(CharSet(CharRangeSet(classes: _*)))
 
   /** Matches any digit (equivalent to `[0-9]`) */
-  lazy val digit: DslRegex =
+  def digit(implicit impl: RegexImpl): DslRegex =
     any('0' -- '9')
 
   /** Matches digits (equivalent to `[0-9]+`) */
-  lazy val digits: DslRegex =
+  def digits(implicit impl: RegexImpl): DslRegex =
     digit.oneOrMore
 
   /** Matches the empty string */
-  lazy val empty: DslRegex =
+  def empty(implicit impl: RegexImpl): DslRegex =
     new DslRegex(Empty)
 
   /** Matches any hexadecimal digit (equivalent to `[A-Fa-f0-9]`) */
-  lazy val hexDigit: DslRegex =
+  def hexDigit(implicit impl: RegexImpl): DslRegex =
     any('A' -- 'F', 'a' -- 'f', '0' -- '9')
 
   /** Matches hexadecimal digits (equivalent to `[A-Fa-f0-9]+`) */
-  lazy val hexDigits: DslRegex =
+  def hexDigits(implicit impl: RegexImpl): DslRegex =
     hexDigits.oneOrMore
 
   /** Matches any character that is not in any of the classes */
-  def none(classes: CharRange*): DslRegex =
+  def none(classes: CharRange*)(implicit impl: RegexImpl): DslRegex =
     new DslRegex(CharSet(CharRangeSet(classes: _*).negate))
 
   /** Matches any non space character (equivalent to `\S`) */
-  lazy val nonspace: DslRegex =
+  def nonspace(implicit impl: RegexImpl): DslRegex =
     none(' ', '\t', '\r', '\n', '\f')
 
   /** Matches non space characters (equivalent to `\S+`) */
-  lazy val nonspaces: DslRegex =
+  def nonspaces(implicit impl: RegexImpl): DslRegex =
     nonspace.oneOrMore
 
   /** Matches the literal characters of the string (special regular expression characters
    *  are considered as raw characters
    */
-  def raw(str: String): DslRegex =
+  def raw(str: String)(implicit impl: RegexImpl): DslRegex =
     new DslRegex(str.map(SomeChar(_)).foldLeft(Empty: ReNode)(Concat(_, _)))
 
   /** Matches any space character (equivalent to `\s`) */
-  lazy val space: DslRegex =
+  def space(implicit impl: RegexImpl): DslRegex =
     any(' ', '\t', '\r', '\n', '\f')
 
   /** Matches space characters (equivalent to `\s+`) */
-  lazy val spaces: DslRegex =
+  def spaces(implicit impl: RegexImpl): DslRegex =
     space.oneOrMore
 
   /** Matches any word (equivalent to `\w+`) */
-  lazy val word: DslRegex =
+  def word(implicit impl: RegexImpl): DslRegex =
     wordChar.oneOrMore
 
   /** Matches any word character (equivalent to `\w`) */
-  lazy val wordChar: DslRegex =
+  def wordChar(implicit impl: RegexImpl): DslRegex =
     any('A' -- 'Z', 'a' -- 'z', '0' -- '9', '_')
 
 }
-

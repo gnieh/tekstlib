@@ -29,21 +29,21 @@ trait DslGreedyRegex extends DslRegex {
 
 }
 
-private class DslGreedyStar(re: ReNode) extends DslRegex(Star(re, true)) with DslGreedyRegex {
+private class DslGreedyStar(re: ReNode)(implicit impl: RegexImpl) extends DslRegex(Star(re, true)) with DslGreedyRegex {
 
   lazy val nonGreedy: DslRegex =
     new DslRegex(Star(re, false))
 
 }
 
-private class DslGreedyPlus(re: ReNode) extends DslRegex(Plus(re, true)) with DslGreedyRegex {
+private class DslGreedyPlus(re: ReNode)(implicit impl: RegexImpl) extends DslRegex(Plus(re, true)) with DslGreedyRegex {
 
   lazy val nonGreedy: DslRegex =
     new DslRegex(Plus(re, false))
 
 }
 
-private class DslGreedyOpt(re: ReNode) extends DslRegex(Opt(re, true)) with DslGreedyRegex {
+private class DslGreedyOpt(re: ReNode)(implicit impl: RegexImpl) extends DslRegex(Opt(re, true)) with DslGreedyRegex {
 
   lazy val nonGreedy: DslRegex =
     new DslRegex(Opt(re, false))

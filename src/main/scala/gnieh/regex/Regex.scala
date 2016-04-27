@@ -15,46 +15,26 @@ package gnieh.regex
 
 import compiler._
 import util._
-import vm._
 
 import scala.util.Failure
 
-/** This class provides a way to create and use regular expressions. It is a non backtracking implementation
- *  based on the descrition from [Russ Cox](http://swtch.com/~rsc/regexp/).
- *  Following regular expressions are supported:
- *   - `.` any character, possibly including newline (s=true)
- *   - `[xyz]` character class
- *   - `[^xyz]` negated character class
- *   - `\d` a digit character (equivalent to `[0-9]`)
- *   - `\D` a non digit character (equivalent to `[^0-9]`)
- *   - `\w` an alphanumeric character (equivalent to `[A-Za-z0-9_]`)
- *   - `\W` a non alphanumeric character (equivalent to `[^A-Za-z0-9_]`)
- *   - `\s` a space character (equivalent to `[ \t\r\n\f]`)
- *   - `\S` a non space character (equivalent to `[^ \t\r\n\f]`)
- *   - `xy` `x` followed by `y`
- *   - `x|y` `x` or `y` (prefer `x`)
- *   - `x*` zero or more `x` (prefer more)
- *   - `x+` one or more `x` (prefer more)
- *   - `x?` zero or one `x` (prefer one)
- *   - `x*?` zero or more `x` (prefer zero)
- *   - `x+?` one or more `x` (prefer one)
- *   - `x??` zero or one `x` (prefer zero)
- *   - `(re)` numbered capturing group (starting at 1)
+/** This class provides a way to create and use regular expressions. The actual implementation depends on the imported backend.
+ *  By default we provide a non backtracking implementation [[gnieh.regex.vm.BytecodeImpl]] and a TDFA implementation [[gnieh.regex.tdfa.TDfaImpl]]. See the documentation of each class for details about the supported features.
  *
  *  @author Lucas Satabin
  */
-class Regex(re: ReNode, source: Option[String]) extends Serializable {
+class Regex(re: ReNode, source: Option[String], impl: RegexImpl) extends Serializable {
 
-  def this(source: String) =
-    this(Parser.parse(source).get, Some(source))
+  def this(source: String, impl: RegexImpl) =
+    this(Parser.parse(source).get, Some(source), impl)
 
-  private val (saved, compiled) = Compiler.compile(re)
+  private val (saved, compiled) = impl.compile(re)
 
   //println(util.Debug.print(compiled))
 
   /** Tells whether this regular expression is matched by the given input */
   def isMatchedBy(input: String): Boolean =
-    VM.exec(compiled, saved, 0, input) match {
+    impl.exec(compiled, saved, 0, input) match {
       case (-1, -1, _) =>
         false
       case (start, end, _) =>
@@ -76,7 +56,7 @@ class Regex(re: ReNode, source: Option[String]) extends Serializable {
    */
   def findFirstMatchIn(input: String): Option[Match] = {
     def find(startIdx: Int): Option[Match] =
-      VM.exec(compiled, saved, startIdx, input) match {
+      impl.exec(compiled, saved, startIdx, input) match {
         case (-1, -1, _) if startIdx < input.size =>
           find(startIdx + 1)
         case (-1, -1, _) =>
@@ -97,7 +77,7 @@ class Regex(re: ReNode, source: Option[String]) extends Serializable {
   /** Finds all matches of this regular expression in the input. */
   def findAllMatchIn(input: String): Iterator[Match] = {
     def loop(startIdx: Int): Stream[Match] =
-      VM.exec(compiled, saved, startIdx, input) match {
+      impl.exec(compiled, saved, startIdx, input) match {
         case (-1, -1, _) if startIdx < input.size =>
           loop(startIdx + 1)
         case (-1, -1, _) =>
@@ -127,8 +107,8 @@ class Regex(re: ReNode, source: Option[String]) extends Serializable {
 
 object Regex {
 
-  def apply(str: String): Regex =
-    new Regex(str)
+  def apply(str: String)(implicit impl: RegexImpl): Regex =
+    new Regex(str, impl)
 
   /** Escaped version of this character if it is needed. */
   def escape(c: Char): String =
