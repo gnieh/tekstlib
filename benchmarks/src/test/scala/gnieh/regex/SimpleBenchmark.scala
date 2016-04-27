@@ -47,20 +47,23 @@ class SimpleBenchmark extends Bench.ForkedTime {
 
   val textGen = Gen.single("text")(text)
 
-  val reGen =
+  val reGenBC = {
+    import bytecode._
     for(re <- Gen.single("re")("([-A-Za-z0-9_.!~*'();/?:@&=+$,# ]|%[A-Fa-f0-9]{2})+".re))
       yield {
         // force evaluation to make it compile
         re.isMatchedBy("")
         re
       }
+  }
 
-  val inputs = Gen.crossProduct(textGen, reGen)
+  val inputs = Gen.crossProduct(textGen, reGenBC)
 
-  performance of "New regular expression" in {
+  performance of "New regular expression based on bytecode" in {
     measure method "findFirstIn" in {
 
       using(textGen) in { t =>
+        import bytecode._
         val localRe = "([-A-Za-z0-9_.!~*'();/?:@&=+$,# ]|%[A-Fa-f0-9]{2})+".re
 
         localRe.isMatchedBy(t)
@@ -69,7 +72,7 @@ class SimpleBenchmark extends Bench.ForkedTime {
     }
   }
 
-  performance of "Reused regular expression" in {
+  performance of "Reused regular expression based on bytecode" in {
     measure method "findFirstIn" in {
 
       using(inputs) in { case (t, re) =>

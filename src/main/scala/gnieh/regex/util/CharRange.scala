@@ -16,6 +16,12 @@ package util
 
 case class CharRange(start: Char, end: Char) extends Ordered[CharRange] {
 
+  def foreach(f: Char => Unit): Unit =
+    for (c <- start to end)
+      f(c)
+
+  def isEmpty = start == end
+
   def contains(c: Char): Boolean =
     c >= start && c <= end
 

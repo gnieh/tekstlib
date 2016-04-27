@@ -4,9 +4,9 @@ name := "tekstlib"
 
 version := "0.1.0-SNAPSHOT"
 
-scalaVersion := "2.11.7"
+scalaVersion := "2.11.8"
 
-crossScalaVersions := Seq("2.11.7", "2.10.4")
+crossScalaVersions := Seq("2.11.8")
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.1" % "test"
 
@@ -34,7 +34,7 @@ OsgiKeys.bundleSymbolicName := "org.gnieh.tekstlib"
 
 OsgiKeys.privatePackage := Seq()
 
-defaultScalariformSettings
+scalariformSettings
 
 ScalariformKeys.preferences := {
   import scalariform.formatter.preferences._
@@ -86,7 +86,7 @@ pomExtra := (
 
 lazy val benchmarks = project in file("benchmarks") dependsOn(root)
 
-scalaVersion in benchmarks := "2.11.7"
+scalaVersion in benchmarks := "2.11.8"
 
 libraryDependencies in benchmarks += "com.storm-enroute" %% "scalameter" % "0.7"
 

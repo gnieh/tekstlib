@@ -20,18 +20,39 @@ import org.scalameter.picklers.noPickler._
 
 class JavaComparisonBenchmark extends Bench.LocalTime {
 
-  val gniehRe = "abc|abd|abe|abf".re
+  val gniehReBC = {
+    import bytecode._
+    "abc|abd|abe|abf".re
+  }
+
+  val gniehReDFA = {
+    import automaton._
+    "abc|abd|abe|abf".re
+  }
 
   val stdRe = "abc|abd|abe|abf"
 
   val text = Gen.single("text")("fda f ofdio difm i mfofgroa gaabcdjsaabedsakabflklklabdabcabakldskfsdfbacpabc")
 
-  performance of "gnieh regular expressions" in {
+  performance of "gnieh regular expressions based on bytecode" in {
 
     measure method "findAllIn" in {
 
       using(text) in { t =>
-        gniehRe.isMatchedBy(t)
+        gniehReBC.isMatchedBy(t)
+
+      }
+
+    }
+
+  }
+
+  performance of "gnieh regular expressions based on TDFA" in {
+
+    measure method "findAllIn" in {
+
+      using(text) in { t =>
+        gniehReDFA.isMatchedBy(t)
 
       }
 
