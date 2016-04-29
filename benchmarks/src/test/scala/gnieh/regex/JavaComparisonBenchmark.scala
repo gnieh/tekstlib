@@ -30,7 +30,7 @@ class JavaComparisonBenchmark extends Bench.LocalTime {
     "abc|abd|abe|abf".re
   }
 
-  val stdRe = "abc|abd|abe|abf"
+  val stdRe = "abc|abd|abe|abf".r
 
   val text = Gen.single("text")("fda f ofdio difm i mfofgroa gaabcdjsaabedsakabflklklabdabcabakldskfsdfbacpabc")
 
@@ -65,7 +65,7 @@ class JavaComparisonBenchmark extends Bench.LocalTime {
     measure method "findAllIn" in {
 
       using(text) in { t =>
-        t.matches(stdRe)
+        stdRe.unapplySeq(t)
 
       }
 
@@ -74,4 +74,3 @@ class JavaComparisonBenchmark extends Bench.LocalTime {
   }
 
 }
-
