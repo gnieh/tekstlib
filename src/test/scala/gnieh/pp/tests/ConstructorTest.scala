@@ -36,11 +36,11 @@ class ConstructorTest extends PpTest {
   it should "return a simple text document if no new lines appear in the string" in {
     string("some line") should be(text("some line"))
   }
-  
+
   "the char constructor" should "return the line document if the new line character is passed" in {
     char('\n') should be(line)
   }
-  
+
   it should "return a text document if the character is not new line" in {
     char('a') should be(text("a"))
   }

@@ -104,7 +104,7 @@ object Compiler {
           // save n + 1
           val (currentSave1, idx1, v1) = loop(currentSave + 2, startIdx + 1, e)
           (currentSave1, idx1 + 1, Vector(Save(currentSave)) ++ v1 ++ Vector(Save(currentSave + 1)))
-        case _: Temporary =>
+        case _ =>
           throw new RuntimeException("Should never happen")
       }
     }

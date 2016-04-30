@@ -17,6 +17,7 @@ package mustache
 import string.StringScanner
 
 import regex._
+import bytecode._
 
 import scala.util.{
   Try,

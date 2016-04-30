@@ -22,6 +22,11 @@ import scala.annotation.tailrec
  */
 class CharRangeSet(val ranges: List[CharRange]) extends Serializable {
 
+  def foreach(f: CharRange => Unit): Unit =
+    ranges.foreach(f)
+
+  def isEmpty = ranges.isEmpty || ranges.forall(_.isEmpty)
+
   def +(range: CharRange): CharRangeSet = {
     @tailrec
     def insert(range: CharRange, ranges: List[CharRange], acc: List[CharRange]): List[CharRange] =

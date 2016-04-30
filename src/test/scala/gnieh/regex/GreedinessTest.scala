@@ -15,6 +15,8 @@
 */
 package gnieh.regex
 
+import bytecode._
+
 import org.scalatest._
 
 /** Tests that (non-)greediness is respected.
