@@ -15,6 +15,8 @@ package gnieh.diff
 
 import scala.annotation.tailrec
 
+import scala.collection.SeqView
+
 /** Implementation of the patience algorithm [1] to compute the longest common subsequence
  *
  *  [1] http://alfedenzo.livejournal.com/170301.html
@@ -32,19 +34,21 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
   type Occurrence = (T, Int)
 
   /** Returns occurrences that appear only once in the list, associated with their index */
-  private def uniques(l: List[T]): List[Occurrence] = {
+  private def uniques(l: SeqView[T, IndexedSeq[T]]): List[Occurrence] = {
     @tailrec
-    def loop(l: List[Occurrence], acc: Map[T, Int]): List[Occurrence] = l match {
-      case (value, idx) :: tl =>
-        if (acc.contains(value))
-          // not unique, remove it from the accumulator and go further
-          loop(tl, acc - value)
-        else
-          loop(tl, acc + (value -> idx))
-      case Nil =>
+    def loop(idx: Int, acc: Map[T, Int]): List[Occurrence] =
+      if (idx >= l.size) {
         acc.toList
-    }
-    loop(l.zipWithIndex, Map())
+      } else {
+        val value = l(idx)
+        if (acc.contains(value)) {
+          // not unique, remove it from the accumulator and go further
+          loop(idx + 1, acc - value)
+        } else {
+          loop(idx + 1, acc.updated(value, idx))
+        }
+      }
+    loop(0, Map())
   }
 
   /** Takes all occurences from the first sequence and order them as in the second sequence if it is present */
@@ -65,11 +69,11 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
   }
 
   /** Returns the list of elements that appear only once in both l1 and l2 ordered as they appear in l2 with their index in l1 */
-  private def uniqueCommons(seq1: Seq[T], seq2: Seq[T]): List[(Occurrence, Int)] = {
+  private def uniqueCommons(seq1: SeqView[T, IndexedSeq[T]], seq2: SeqView[T, IndexedSeq[T]]): List[(Occurrence, Int)] = {
     // the values that occur only once in the first sequence
-    val uniques1 = uniques(seq1.toList)
+    val uniques1 = uniques(seq1)
     // the values that occur only once in the second sequence
-    val uniques2 = uniques(seq2.toList)
+    val uniques2 = uniques(seq2)
     // now order the unique occurrences as they appear in the second list
     common(uniques1, uniques2)
   }
@@ -110,7 +114,7 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
   /** Computes the longest common subsequence between both sequences.
    *  It is encoded as the list of common indices in the first and the second sequence.
    */
-  def lcs(s1: Seq[T], s2: Seq[T], low1: Int, high1: Int, low2: Int, high2: Int): List[(Int, Int)] = {
+  def lcs(s1: IndexedSeq[T], s2: IndexedSeq[T], low1: Int, high1: Int, low2: Int, high2: Int): List[(Int, Int)] = {
     val seq1 = s1.slice(low1, high1)
     val seq2 = s2.slice(low2, high2)
     if (seq1.isEmpty || seq2.isEmpty) {
