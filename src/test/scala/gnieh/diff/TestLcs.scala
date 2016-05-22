@@ -23,7 +23,7 @@ abstract class TestLcs extends FlatSpec with Matchers {
 
     val str = "abcde"
     val lcs = lcsImpl.lcs(str, str)
-    lcs should be(List(0 -> 0, 1 -> 1, 2 -> 2, 3 -> 3, 4 -> 4))
+    lcs should be(List(Common(0, 0, 5)))
 
   }
 
@@ -33,11 +33,11 @@ abstract class TestLcs extends FlatSpec with Matchers {
     val prefix = "abc"
     val lcs1 = lcsImpl.lcs(str, prefix)
 
-    lcs1 should be(List(0 -> 0, 1 -> 1, 2 -> 2))
+    lcs1 should be(List(Common(0, 0, 3)))
 
     val lcs2 = lcsImpl.lcs(prefix, str)
 
-    lcs2 should be(List(0 -> 0, 1 -> 1, 2 -> 2))
+    lcs2 should be(List(Common(0, 0, 3)))
 
   }
 
@@ -58,7 +58,7 @@ abstract class TestLcs extends FlatSpec with Matchers {
 
     val lcs = lcsImpl.lcs(str1, str2)
 
-    lcs should be(List(1 -> 0, 3 -> 1, 4 -> 2, 6 -> 3))
+    lcs should be(List(Common(1, 0, 1), Common(3, 1, 2), Common(6, 3, 1)))
   }
 
   it should "be correctly computed with a repeated character in common" in {
@@ -68,7 +68,7 @@ abstract class TestLcs extends FlatSpec with Matchers {
 
     val lcs = lcsImpl.lcs(str1, str2)
 
-    lcs should be(List(1 -> 0, 3 -> 1, 5 -> 2, 7 -> 3))
+    lcs should be(List(Common(1, 0, 1), Common(3, 1, 1), Common(5, 2, 1), Common(7, 3, 1)))
   }
 
   it should "be correctly computed with non unique characters" in {
@@ -78,7 +78,7 @@ abstract class TestLcs extends FlatSpec with Matchers {
 
     val lcs = lcsImpl.lcs(str1, str2)
 
-    lcs should be(List(0 -> 1, 1 -> 2, 4 -> 4, 5 -> 6))
+    lcs should be(List(Common(0, 1, 2), Common(4, 4, 1), Common(5, 6, 1)))
   }
 
   it should "be correctly computed when both sequences have a common prefix and suffix" in {
@@ -88,7 +88,7 @@ abstract class TestLcs extends FlatSpec with Matchers {
 
     val lcs = lcsImpl.lcs(str1, str2)
 
-    lcs should be(List(0 -> 0, 1 -> 1, 2 -> 2, 3 -> 3, 5 -> 5, 7 -> 9, 8 -> 10, 9 -> 11))
+    lcs should be(List(Common(0, 0, 4), Common(5, 5, 1), Common(7, 9, 3)))
 
   }
 

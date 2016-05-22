@@ -27,8 +27,8 @@ import scala.collection.SeqView
 class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
 
   // algorithm we fall back to when patience algorithm is unable to find the LCS
-  private val classicLcs =
-    if (withFallback) Some(new DynamicProgLcs[T]) else None
+  private val classicLcs: Option[Lcs[T]] =
+    if (withFallback) Some(new MyersLcs[T]) else None
 
   /** An occurrence of a value associated to its index */
   type Occurrence = (T, Int)
@@ -79,7 +79,7 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
   }
 
   /** Returns the longest sequence */
-  private def longest(l: List[(Occurrence, Int)]): List[(Int, Int)] = {
+  private def longest(l: List[(Occurrence, Int)]): List[Common] = {
     if (l.isEmpty) {
       Nil
     } else {
@@ -114,96 +114,79 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
   /** Computes the longest common subsequence between both sequences.
    *  It is encoded as the list of common indices in the first and the second sequence.
    */
-  def lcs(s1: IndexedSeq[T], s2: IndexedSeq[T], low1: Int, high1: Int, low2: Int, high2: Int): List[(Int, Int)] = {
-    val seq1 = s1.slice(low1, high1)
-    val seq2 = s2.slice(low2, high2)
-    if (seq1.isEmpty || seq2.isEmpty) {
-      // shortcut if at least on sequence is empty, the lcs, is empty as well
-      Nil
-    } else if (seq1 == seq2) {
-      // both sequences are equal, the lcs is either of them
-      seq1.indices.map(i => (i + low1, i + low2)).toList
-    } else if (seq1.startsWith(seq2)) {
-      // the second sequence is a prefix of the first one
-      // the lcs is the second sequence
-      seq2.indices.map(i => (i + low1, i + low2)).toList
-    } else if (seq2.startsWith(seq1)) {
-      // the first sequence is a prefix of the second one
-      // the lcs is the first sequence
-      seq1.indices.map(i => (i + low1, i + low2)).toList
-    } else {
-      // fill the holes with possibly common (not unique) elements
-      def loop(low1: Int, low2: Int, high1: Int, high2: Int, acc: List[(Int, Int)]): List[(Int, Int)] =
-        if (low1 == high1 || low2 == high2) {
-          acc
-        } else {
-          var lastPos1 = low1 - 1
-          var lastPos2 = low2 - 1
-          var answer = acc
-          for ((p1, p2) <- longest(uniqueCommons(seq1.view(low1, high1), seq2.view(low2, high2)))) {
-            // recurse between lines which are unique in each sequence
-            val pos1 = p1 + low1
-            val pos2 = p2 + low2
-            // most of the time we have sequences of similar entries
-            if (lastPos1 + 1 != pos1 || lastPos2 + 1 != pos2)
-              answer = loop(lastPos1 + 1, lastPos2 + 1, pos1, pos2, answer)
-            lastPos1 = pos1
-            lastPos2 = pos2
-            answer = (pos1, pos2) :: answer
-          }
-          if (answer.size > acc.size) {
-            // the size of the accumulator increased, find
-            // matches between the last match and the end
-            loop(lastPos1 + 1, lastPos2 + 1, high1, high2, answer)
-          } else if (seq1(low1) == seq2(low2)) {
-            // find lines that match at the beginning
-            var newLow1 = low1
-            var newLow2 = low2
-            while (newLow1 < high1 && newLow2 < high2 && seq1(newLow1) == seq2(newLow2)) {
-              answer = (newLow1, newLow2) :: answer
-              newLow1 += 1
-              newLow2 += 1
-            }
-            loop(newLow1, newLow2, high1, high2, answer)
-          } else if (seq1(high1 - 1) == seq2(high2 - 1)) {
-            // find lines that match at the end
-            var newHigh1 = high1 - 1
-            var newHigh2 = high2 - 1
-            while (newHigh1 > low1 && newHigh2 > low2 && seq1(newHigh1 - 1) == seq2(newHigh2 - 1)) {
-              newHigh1 -= 1
-              newHigh2 -= 1
-            }
-            answer = loop(lastPos1 + 1, lastPos2 + 1, newHigh1, newHigh2, answer)
-            for (i <- 0 until (high1 - newHigh1))
-              answer = (newHigh1 + i, newHigh2 + i) :: answer
-            answer
-          } else {
-            classicLcs match {
-              case Some(classicLcs) =>
-                // fall back to classic LCS algorithm when there is no unique common elements
-                // between both sequences and they have no common prefix nor suffix
-                // raw patience algorithm is not good for finding LCS in such cases
-                classicLcs.lcs(seq1, seq2, low1, high1, low2, high2) reverse_::: answer
-
-              case _ =>
-                answer
-            }
-          }
-
+  def lcsInner(seq1: IndexedSeq[T], glow1: Int, seq2: IndexedSeq[T], glow2: Int): List[Common] = {
+    // fill the holes with possibly common (not unique) elements
+    def loop(low1: Int, low2: Int, high1: Int, high2: Int, acc: List[Common]): List[Common] =
+      if (low1 >= high1 || low2 >= high2) {
+        acc
+      } else {
+        var lastPos1 = low1 - 1
+        var lastPos2 = low2 - 1
+        var answer = acc
+        for (Common(p1, p2, l) <- longest(uniqueCommons(seq1.view(low1, high1), seq2.view(low2, high2)))) {
+          // recurse between lines which are unique in each sequence
+          val pos1 = p1 + low1 + glow1
+          val pos2 = p2 + low2 + glow2
+          // most of the time we have sequences of similar entries
+          if (lastPos1 + 1 != pos1 || lastPos2 + 1 != pos2)
+            answer = loop(lastPos1 + 1, lastPos2 + 1, pos1, pos2, answer)
+          lastPos1 = pos1
+          lastPos2 = pos2
+          answer = push(Common(pos1, pos2, l), answer, false)
         }
-      // we start with first indices in both sequences
-      loop(low1, low2, high1, high2, Nil).reverse
+        if (answer != acc) {
+          // the size of the accumulator increased, find
+          // matches between the last match and the end
+          loop(lastPos1 + 1, lastPos2 + 1, high1, high2, answer)
+        } else if (seq1(low1) == seq2(low2)) {
+          // find lines that match at the beginning
+          var newLow1 = low1
+          var newLow2 = low2
+          while (newLow1 < high1 && newLow2 < high2 && seq1(newLow1) == seq2(newLow2)) {
+            answer = push(newLow1 + glow1, newLow2 + glow2, answer, false)
+            newLow1 += 1
+            newLow2 += 1
+          }
+          loop(newLow1, newLow2, high1, high2, answer)
+        } else if (seq1(high1 - 1) == seq2(high2 - 1)) {
+          // find lines that match at the end
+          var newHigh1 = high1 - 1
+          var newHigh2 = high2 - 1
+          while (newHigh1 > low1 && newHigh2 > low2 && seq1(newHigh1 - 1) == seq2(newHigh2 - 1)) {
+            newHigh1 -= 1
+            newHigh2 -= 1
+          }
+          answer = loop(lastPos1 + 1, lastPos2 + 1, newHigh1, newHigh2, answer)
+          for (i <- 0 until (high1 - newHigh1))
+            answer = push(newHigh1 + i + glow1, newHigh2 + i + glow2, answer, false)
+          answer
+        } else {
+          classicLcs match {
+            case Some(classicLcs) =>
+              // fall back to classic LCS algorithm when there is no unique common elements
+              // between both sequences and they have no common prefix nor suffix
+              // raw patience algorithm is not good for finding LCS in such cases
+              classicLcs.lcs(seq1, seq2).foldLeft(answer) { (acc, common) =>
+                push(Common(common.start1 + glow1, common.start2 + glow2, common.length), acc, false)
+              }
+
+            case _ =>
+              answer
+          }
+        }
+
+      }
+    // we start with first indices in both sequences
+    loop(0, 0, seq1.size, seq2.size, Nil)
+  }
+
+  private case class Stacked(idx1: Int, idx2: Int, next: Option[Stacked]) {
+    lazy val chain: List[Common] = next match {
+      case Some(stacked) =>
+        push(idx1, idx2, stacked.chain, false)
+      case None =>
+        List(Common(idx1, idx2, 1))
     }
   }
 
 }
-
-private case class Stacked(idx1: Int, idx2: Int, next: Option[Stacked]) {
-  lazy val chain: List[(Int, Int)] = next match {
-    case Some(stacked) =>
-      (idx1, idx2) :: stacked.chain
-    case None =>
-      List(idx1 -> idx2)
-  }
-}
-
