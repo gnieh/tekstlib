@@ -33,9 +33,23 @@ final case class SomeChar(c: Char) extends ReNode {
   override def toString = c.toString
 }
 
-final case class Concat(n1: ReNode, n2: ReNode) extends ReNode {
+final class Concat(val n1: ReNode, val n2: ReNode) extends ReNode {
   val acceptEmpty = n1.acceptEmpty && n2.acceptEmpty
   override def toString = f"$n1$n2"
+}
+
+object Concat {
+
+  def apply(n1: ReNode, n2: ReNode): ReNode =
+    (n1, n2) match {
+      case (Empty, _) => n2
+      case (_, Empty) => n1
+      case (_, _)     => new Concat(n1, n2)
+    }
+
+  def unapply(c: Concat): Option[(ReNode, ReNode)] =
+    Some(c.n1 -> c.n2)
+
 }
 
 final case class Alt(n1: ReNode, n2: ReNode) extends ReNode {
@@ -66,11 +80,6 @@ final case class CharSet(chars: CharRangeSet) extends ReNode {
 final case class Capture(n: ReNode) extends ReNode {
   val acceptEmpty = n.acceptEmpty
   override def toString = f"($n)"
-}
-
-final case class Bounded(n: ReNode, min: Int, max: Option[Int]) extends ReNode {
-  val acceptEmpty = min == 0 || n.acceptEmpty
-  override def toString = f"$n{${min}${max.map(n => f",$n").getOrElse("")}}"
 }
 
 case object StartAnchor extends ReNode {

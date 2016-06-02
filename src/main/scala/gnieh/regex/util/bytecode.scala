@@ -20,7 +20,7 @@ final case class CharMatch(c: Char) extends Inst {
   override def toString = s"char $c"
 }
 
-final case class AnyMatch() extends Inst {
+case object AnyMatch extends Inst {
   override def toString = "any"
 }
 
@@ -44,3 +44,10 @@ final case class Save(nb: Int) extends Inst {
   override def toString = s"save $nb"
 }
 
+case object CheckStart extends Inst {
+  override def toString = "check_start"
+}
+
+case object CheckEnd extends Inst {
+  override def toString = "check_end"
+}

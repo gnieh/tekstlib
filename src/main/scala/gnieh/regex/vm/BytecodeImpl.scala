@@ -38,6 +38,10 @@ import util._
  *   - `x+?` one or more `x` (prefer one)
  *   - `x??` zero or one `x` (prefer zero)
  *   - `(re)` numbered capturing group (starting at 1)
+ *   - `re{min,max}` bounded repetition (`min` and `max` are integers)
+ *   - `re{min}` bounded repetition (`min` is an integer)
+ *   - `^` start of input anchor
+ *   - `$` end of input anchor
  *
  *  @author Lucas Satabin
  */

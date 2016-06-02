@@ -211,10 +211,8 @@ object Parser {
         state match {
           case BoundState =>
             // boundary end, reduce the boundary and previous atom
-            for {
-              (newStack, min, max) <- reduceBoundaries(stack, offset)
-              newStack <- reduceOne("}", newStack, offset, Bounded(_, min, max))
-            } yield (NormalState, level, newStack, newOffset)
+            for (newStack <- reduceBounded(stack, offset))
+              yield (NormalState, level, newStack, newOffset)
           case _ =>
             Success(state, level, SomeChar('}') :: stack, newOffset)
         }
@@ -310,27 +308,59 @@ object Parser {
   }
 
   /* Pops all the elements from the stack until we reach start of boundaries expression. */
-  private def reduceBoundaries(stack: Stack, offset: Offset) = {
+  private def reduceBounded(stack: Stack, offset: Offset) = {
     @tailrec
-    def loop(stack: Stack, inMax: Boolean, min: Option[Int], max: Option[Int]): Try[(Stack, Int, Option[Int])] =
+    def boundaries(stack: Stack, inMax: Boolean, min: Option[Int], max: Option[Int]): Try[(Stack, Int, Option[Int])] =
       stack match {
         case BoundStart(off) :: tail =>
           (min, max) match {
             case (Some(min), _)    => Success(tail, min, max)
-            case (None, Some(min)) => Success(tail, min, None)
+            case (None, Some(min)) => Success(tail, min, Some(min))
             case (None, None)      => Failure(new RegexParserException(off, "Malformed regular expression"))
           }
         case SomeChar(',') :: tail if inMax =>
-          loop(tail, false, min, max)
+          boundaries(tail, false, min, max)
         case SomeChar(n @ ('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) :: tail =>
           if (inMax)
-            loop(tail, inMax, min, max.orElse(Some(0)).map(_ * 10 + (n - 48)))
+            boundaries(tail, inMax, min, max.orElse(Some(0)).map(_ * 10 + (n - 48)))
           else
-            loop(tail, inMax, min.orElse(Some(0)).map(_ * 10 + (n - 48)), max)
+            boundaries(tail, inMax, min.orElse(Some(0)).map(_ * 10 + (n - 48)), max)
         case _ =>
           Failure(new RegexParserException(offset, "Malformed regular expression"))
       }
-    loop(stack, true, None, None)
+    boundaries(stack, true, None, None).flatMap {
+      case (newStack, min, max) =>
+        val (n, newStack1) = newStack match {
+          case n :: tail => (n, tail)
+          case Nil       => (Empty, Nil)
+        }
+        max match {
+          case Some(`min`) =>
+            val n1 =
+              (1 to min).foldLeft(Empty: ReNode) {
+                case (acc, _) => Concat(acc, n)
+              }
+            Success(n1 :: newStack1)
+          case Some(max) if max >= min =>
+            val n1 =
+              (1 to (max - min)).foldRight(Empty: ReNode) {
+                case (_, acc) => Concat(Opt(n, true), acc)
+              }
+            val n2 =
+              (1 to min).foldRight(n1) {
+                case (_, acc) => Concat(n, acc)
+              }
+            Success(n2 :: newStack1)
+          case Some(_) =>
+            Failure(new RegexParserException(offset, "Malformed regular expression"))
+          case None =>
+            val n1 =
+              (1 until min).foldRight(Plus(n, true): ReNode) {
+                case (_, acc) => Concat(n, acc)
+              }
+            Success(n1 :: newStack1)
+        }
+    }
   }
 
   private def escapable(state: LexState, c: Char): Boolean =
