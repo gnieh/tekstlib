@@ -59,11 +59,12 @@ object Parser {
   private final case class CHAR(c: Char) extends Token
 
   // the lexer state is different when in different parts of the regular exception:
-  //  - parsing a flag
-  //  - parsing a choice
   //  - parsing some normal part of the regular expression
+  //  - parsing a repetition boundary
+  //  - parsing a character state
   private sealed trait LexState
   private case object NormalState extends LexState
+  private case object BoundState extends LexState
   private final case class SetState(negated: Boolean, previous: LexState) extends LexState
 
   // offset representing the current position in the input
@@ -80,7 +81,7 @@ object Parser {
       if (offset >= input.length) {
         Success(stack)
       } else {
-        // XXX do not use map here to have a tail recuvrsive function
+        // do not use map here to have a tail recuvrsive function
         parseRe(input, state, level, stack, offset) match {
           case Success((newState, newLevel, newStack, newOffset)) =>
             //println(newStack)
@@ -200,14 +201,23 @@ object Parser {
           case _ =>
             Success(state, level, SomeChar(']') :: stack, newOffset)
         }
-      case (CIRC, _) =>
-        Failure(new RegexParserException(offset, "'^' anchor not implemented yet"))
-      case (DOLLAR, _) =>
-        Failure(new RegexParserException(offset, "'$' anchor not implemented yet"))
-      case (LBRACE, _) =>
-        Failure(new RegexParserException(offset, "counted repetitions not implemented yet"))
-      case (RBRACE, _) =>
-        Failure(new RegexParserException(offset, "counted repetitions not implemented yet"))
+      case (CIRC, newOffset) =>
+        Success(state, level, StartAnchor :: stack, newOffset)
+      case (DOLLAR, newOffset) =>
+        Success(state, level, EndAnchor :: stack, newOffset)
+      case (LBRACE, newOffset) =>
+        Success(BoundState, level, BoundStart(offset) :: stack, newOffset)
+      case (RBRACE, newOffset) =>
+        state match {
+          case BoundState =>
+            // boundary end, reduce the boundary and previous atom
+            for {
+              (newStack, min, max) <- reduceBoundaries(stack, offset)
+              newStack <- reduceOne("}", newStack, offset, Bounded(_, min, max))
+            } yield (NormalState, level, newStack, newOffset)
+          case _ =>
+            Success(state, level, SomeChar('}') :: stack, newOffset)
+        }
     }
 
   /* Pops one element of the stack and pushes the newly contructed one from this one */
@@ -279,7 +289,7 @@ object Parser {
     loop(stack, new CharRangeSet(Nil))
   }
 
-  /* Pops all the elements fromt the stack until we reach an alternative or an opening group,
+  /* Pops all the elements from the stack until we reach an alternative or an opening group,
    * or the bottom of the stack */
   private def reduceAlternatives(level: Int, stack: Stack, offset: Offset) = {
     @tailrec
@@ -299,10 +309,36 @@ object Parser {
     loop(stack, None)
   }
 
+  /* Pops all the elements from the stack until we reach start of boundaries expression. */
+  private def reduceBoundaries(stack: Stack, offset: Offset) = {
+    @tailrec
+    def loop(stack: Stack, inMax: Boolean, min: Option[Int], max: Option[Int]): Try[(Stack, Int, Option[Int])] =
+      stack match {
+        case BoundStart(off) :: tail =>
+          (min, max) match {
+            case (Some(min), _)    => Success(tail, min, max)
+            case (None, Some(min)) => Success(tail, min, None)
+            case (None, None)      => Failure(new RegexParserException(off, "Malformed regular expression"))
+          }
+        case SomeChar(',') :: tail if inMax =>
+          loop(tail, false, min, max)
+        case SomeChar(n @ ('0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')) :: tail =>
+          if (inMax)
+            loop(tail, inMax, min, max.orElse(Some(0)).map(_ * 10 + (n - 48)))
+          else
+            loop(tail, inMax, min.orElse(Some(0)).map(_ * 10 + (n - 48)), max)
+        case _ =>
+          Failure(new RegexParserException(offset, "Malformed regular expression"))
+      }
+    loop(stack, true, None, None)
+  }
+
   private def escapable(state: LexState, c: Char): Boolean =
     state match {
       case NormalState =>
         ".[{()\\*+?|".contains(c)
+      case BoundState =>
+        "}".contains(c)
       case SetState(_, _) =>
         "\\[]".contains(c)
     }
@@ -371,6 +407,10 @@ object Parser {
         Success(LBRACKET, offset + 1)
       else if (input(offset) == ']')
         Success(RBRACKET, offset + 1)
+      else if (input(offset) == '{')
+        Success(LBRACE, offset + 1)
+      else if (input(offset) == '}')
+        Success(RBRACE, offset + 1)
       else if (input(offset) == '^')
         Success(CIRC, offset + 1)
       else if (input(offset) == '$')

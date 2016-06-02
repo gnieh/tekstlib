@@ -35,37 +35,52 @@ final case class SomeChar(c: Char) extends ReNode {
 
 final case class Concat(n1: ReNode, n2: ReNode) extends ReNode {
   val acceptEmpty = n1.acceptEmpty && n2.acceptEmpty
-  override def toString = s"$n1$n2"
+  override def toString = f"$n1$n2"
 }
 
 final case class Alt(n1: ReNode, n2: ReNode) extends ReNode {
   val acceptEmpty = n1.acceptEmpty || n2.acceptEmpty
-  override def toString = s"$n1|$n2"
+  override def toString = f"$n1|$n2"
 }
 
 final case class Star(n: ReNode, greedy: Boolean) extends ReNode {
   val acceptEmpty = true
-  override def toString = s"$n*"
+  override def toString = f"$n*"
 }
 
 final case class Plus(n: ReNode, greedy: Boolean) extends ReNode {
   val acceptEmpty = n.acceptEmpty
-  override def toString = s"$n+"
+  override def toString = f"$n+"
 }
 
 final case class Opt(n: ReNode, greedy: Boolean) extends ReNode {
   val acceptEmpty = true
-  override def toString = s"$n?"
+  override def toString = f"$n?"
 }
 
 final case class CharSet(chars: CharRangeSet) extends ReNode {
   val acceptEmpty = chars.isEmpty
-  override def toString = s"$chars"
+  override def toString = f"$chars"
 }
 
 final case class Capture(n: ReNode) extends ReNode {
   val acceptEmpty = n.acceptEmpty
-  override def toString = s"($n)"
+  override def toString = f"($n)"
+}
+
+final case class Bounded(n: ReNode, min: Int, max: Option[Int]) extends ReNode {
+  val acceptEmpty = min == 0 || n.acceptEmpty
+  override def toString = f"$n{${min}${max.map(n => f",$n").getOrElse("")}}"
+}
+
+case object StartAnchor extends ReNode {
+  val acceptEmpty = true
+  override def toString = "^"
+}
+
+case object EndAnchor extends ReNode {
+  val acceptEmpty = true
+  override def toString = "$"
 }
 
 /* A temporary node that is pushed onto the parsing stack and serves as marker
@@ -74,6 +89,9 @@ private[regex] sealed trait Temporary extends ReNode {
   val offset: Int
 }
 private[regex] final case class CapturingStart(level: Int, offset: Int) extends Temporary {
+  val acceptEmpty = false
+}
+private[regex] final case class BoundStart(offset: Int) extends Temporary {
   val acceptEmpty = false
 }
 private[regex] final case class CharSetStart(level: Int, offset: Int) extends Temporary {
