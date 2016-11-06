@@ -15,7 +15,7 @@ package gnieh.string
 
 import org.scalatest._
 
-class GapBufferTest extends FlatSpec with ShouldMatchers {
+class GapBufferTest extends FlatSpec with Matchers {
 
   "The initial content size" should "be empty" in {
     val gb = new GapBuffer(1024)

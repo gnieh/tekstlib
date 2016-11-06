@@ -15,7 +15,7 @@ package gnieh.string
 
 import org.scalatest._
 
-class SuffixArrayTest extends FlatSpec with ShouldMatchers {
+class SuffixArrayTest extends FlatSpec with Matchers {
 
   "The suffix array of a string consisting of one single letter" should "be the reversed array of indices" in {
     val sa = SuffixArray.suffixArray("ööööööööööööööööööö")

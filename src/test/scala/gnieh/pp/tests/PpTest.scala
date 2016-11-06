@@ -3,7 +3,7 @@ package tests
 
 import org.scalatest._
 
-abstract class PpTest extends FlatSpec with ShouldMatchers {
+abstract class PpTest extends FlatSpec with Matchers {
 
   val compact = CompactRenderer.andThen(_.layout)
 

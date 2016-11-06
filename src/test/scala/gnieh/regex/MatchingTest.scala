@@ -24,7 +24,7 @@ import org.scalatest._
  *
  *  @author Lucas Satabin
  */
-class MatchingTest extends FlatSpec with ShouldMatchers {
+class MatchingTest extends FlatSpec with Matchers {
 
   "A single character regular expression" should "match iff the string is this character" in {
 

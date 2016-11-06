@@ -23,7 +23,7 @@ import org.scalatest._
  *
  *  @author Lucas Satabin
  */
-class GreedinessTest extends FlatSpec with ShouldMatchers {
+class GreedinessTest extends FlatSpec with Matchers {
 
   "Greedy operator" should "match as many characters as possible for star" in {
 
