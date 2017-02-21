@@ -66,6 +66,11 @@ package object pp {
   val empty: Doc =
     EmptyDoc
 
+  /** Renders the document with prepending n spaces to the current column */
+  @inline
+  def indent(i: Int)(doc: Doc): Doc =
+    hang(i)(ConsDoc(TextDoc(" " * i), doc))
+
   /** Renders the document with nesting level set to the current column */
   @inline
   def align(doc: Doc): Doc =
