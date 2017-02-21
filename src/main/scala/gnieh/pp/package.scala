@@ -27,7 +27,7 @@ package object pp {
   def nest(indent: Int)(inner: Doc): Doc =
     NestDoc(indent, inner)
 
-  /* Deindent the document */
+  /** Deindent the document */
   @inline
   def unnest(indent: Int)(inner: Doc): Doc =
     nest(-indent)(inner)
@@ -184,30 +184,30 @@ package object pp {
     group(vcat(docs))
 
   @inline
-  implicit def s2doc(s: String) =
+  implicit def s2doc(s: String): Doc =
     string(s)
 
   @inline
-  implicit def i2doc(i: Int) =
+  implicit def i2doc(i: Int): Doc =
     int(i)
 
   @inline
-  implicit def l2doc(l: Long) =
+  implicit def l2doc(l: Long): Doc =
     long(l)
 
   @inline
-  implicit def f2doc(f: Float) =
+  implicit def f2doc(f: Float): Doc =
     float(f)
 
   @inline
-  implicit def d2doc(d: Double) =
+  implicit def d2doc(d: Double): Doc =
     double(d)
 
   @inline
-  implicit def c2doc(c: Char) =
+  implicit def c2doc(c: Char): Doc =
     char(c)
 
-  implicit def opt2doc[T <% Doc](o: Option[T]): Doc = o match {
+  implicit def opt2doc[T](o: Option[T])(implicit ev: T => Doc): Doc = o match {
     case Some(d) => d
     case None    => empty
   }

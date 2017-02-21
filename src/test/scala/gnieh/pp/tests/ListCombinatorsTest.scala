@@ -31,4 +31,11 @@ class ListCombinatorsTest extends PpTest {
     render80(test2) should be("some text\n     to\n     lay\n     out")
   }
 
+  "vcat" should "be indented when within an indentation block" in {
+    val docs: List[Doc] = List("line1", "line2", "line3")
+    val finalDoc = nest(2)(vcat(docs))
+
+    render80(finalDoc) should be("  line1\n  line2\n  line3")
+  }
+
 }
