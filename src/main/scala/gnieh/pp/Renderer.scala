@@ -15,6 +15,8 @@
  */
 package gnieh.pp
 
+import scala.annotation.tailrec
+
 /** A pretty printer, that tries to make the document fit in the page width
  *
  *  @author Lucas Satabin
@@ -24,37 +26,25 @@ class PrettyRenderer(width: Int) extends (Doc => SimpleDoc) {
   private type Docs = List[(Int, Doc)]
 
   def apply(doc: Doc) =
-    best(width, 0, List((0, doc)))
+    format(0, List((0, Break, doc)))
 
-  private def best(width: Int, column: Int, docs: Docs): SimpleDoc = docs match {
-    case Nil =>
-      SEmpty
-    case (_, EmptyDoc) :: tail =>
-      best(width, column, tail)
-    case (i, ConsDoc(first, second)) :: tail =>
-      best(width, column, (i, first) :: (i, second) :: tail)
-    case (i, NestDoc(j, inner)) :: tail =>
-      best(width, column, (i + j, inner) :: tail)
-    case (i, TextDoc(text)) :: tail =>
-      SText(text, best(width, column + text.length, tail))
-    case (i, LineDoc(_)) :: tail =>
-      SLine(i, best(width, i, tail))
-    case (i, UnionDoc(l, s)) :: tail =>
-      better(width, column,
-        best(width, column, (i, l) :: tail),
-        best(width, column, (i, s) :: tail))
-    case (i, AlignDoc(inner)) :: tail =>
-      best(width, column, (column, inner) :: tail)
-    case (i, ColumnDoc(f)) :: tail =>
-      best(width, column, (i, f(column)) :: tail)
-  }
-
-  private def better(width: Int, column: Int, d1: SimpleDoc, d2: => SimpleDoc): SimpleDoc =
-    if (d1.fits(width - column))
-      d1
-    else
-      // d2 is computed only if needed...
-      d2
+  private def format(column: Int, docs: List[(Int, Mode, Doc)]): SimpleDoc =
+    docs match {
+      case (i, m, EmptyDoc) :: docs        => format(column, docs)
+      case (i, m, ConsDoc(d1, d2)) :: docs => format(column, (i, m, d1) :: (i, m, d2) :: docs)
+      case (i, m, NestDoc(j, d)) :: docs   => format(column, (i + j, m, d) :: docs)
+      case (i, m, TextDoc(s)) :: docs      => SText(s, format(column + s.length, docs))
+      case (i, Flat, LineDoc(s)) :: docs   => SText(s, format(column + s.length, docs))
+      case (i, Break, LineDoc(s)) :: docs  => SLine(i, format(i, docs))
+      case (i, m, AlignDoc(d)) :: docs     => format(column, (column, m, d) :: docs)
+      case (i, m, ColumnDoc(f)) :: docs    => format(column, (i, m, f(column)) :: docs)
+      case (i, m, GroupDoc(d)) :: docs =>
+        if (fits(width - column, column, (i, Flat, d) :: docs))
+          format(column, (i, Flat, d) :: docs)
+        else
+          format(column, (i, Break, d) :: docs)
+      case Nil => SEmpty
+    }
 
 }
 
@@ -69,17 +59,15 @@ object CompactRenderer extends (Doc => SimpleDoc) {
     scan(0, List(doc))
 
   private def scan(column: Int, docs: List[Doc]): SimpleDoc = docs match {
-    case Nil => SEmpty
-    case doc :: docs => doc match {
-      case EmptyDoc               => SEmpty
-      case TextDoc(text)          => SText(text, scan(column + text.length, docs))
-      case LineDoc(_)             => scan(column, doc.flatten :: docs)
-      case ConsDoc(first, second) => scan(column, first :: second :: docs)
-      case NestDoc(j, doc)        => scan(column, doc :: docs)
-      case UnionDoc(long, _)      => scan(column, long :: docs)
-      case AlignDoc(inner)        => scan(column, inner :: docs)
-      case ColumnDoc(f)           => scan(column, (f(column)) :: docs)
-    }
+    case Nil                     => SEmpty
+    case EmptyDoc :: docs        => scan(column, docs)
+    case TextDoc(s) :: docs      => SText(s, scan(column + s.length, docs))
+    case LineDoc(s) :: docs      => SText(s, scan(column + s.length, docs))
+    case ConsDoc(d1, d2) :: docs => scan(column, d1 :: d2 :: docs)
+    case NestDoc(j, d) :: docs   => scan(column, d :: docs)
+    case GroupDoc(d) :: docs     => scan(column, d :: docs)
+    case AlignDoc(d) :: docs     => scan(column, d :: docs)
+    case ColumnDoc(f) :: docs    => scan(column, f(column) :: docs)
   }
 
 }
@@ -104,10 +92,6 @@ class TruncateRenderer(max: Int, unit: CountUnit, inner: Doc => SimpleDoc) exten
   def apply(doc: Doc) =
     truncate(inner(doc))
 
-  def apply(doc: SimpleDoc) =
-    truncate(doc)
-
-  /** Truncates the simple document, depending on the constructor criterion. */
   def truncate(doc: SimpleDoc): SimpleDoc = {
     unit match {
       case Lines      => firstLines(max, doc)

@@ -15,12 +15,34 @@
 */
 package gnieh
 
+import scala.annotation.tailrec
+
 import scala.collection.TraversableLike
 
 import scala.language.implicitConversions
 
-/** Pretty-printer library based on the Wadler's paper "A Prettier Printer". */
+/** Pretty-printer library based on the Wadler's paper "A Prettier Printer" and Lindig's paper "Strictly Pretty". */
 package object pp {
+
+  sealed trait Mode
+  case object Flat extends Mode
+  case object Break extends Mode
+
+  @tailrec
+  protected[pp] def fits(width: Int, column: Int, docs: List[(Int, Mode, Doc)]): Boolean =
+    if (width <= 0)
+      false
+    else docs match {
+      case (i, m, EmptyDoc) :: docs        => fits(width, column, docs)
+      case (i, m, ConsDoc(d1, d2)) :: docs => fits(width, column, (i, m, d1) :: (i, m, d2) :: docs)
+      case (i, m, NestDoc(j, d)) :: docs   => fits(width, column, (i + j, m, d) :: docs)
+      case (i, m, TextDoc(s)) :: docs      => fits(width - s.length, column, docs)
+      case (i, Flat, LineDoc(s)) :: docs   => fits(width - s.length, column, docs)
+      case (i, m, GroupDoc(d)) :: docs     => fits(width, column, (i, Break, d) :: docs)
+      case (i, m, AlignDoc(d)) :: docs     => fits(width, column, (column, m, d) :: docs)
+      case (i, m, ColumnDoc(f)) :: docs    => fits(width, column, (i, m, f(column)) :: docs)
+      case _                               => true
+    }
 
   /** Indents the document */
   @inline
@@ -39,12 +61,12 @@ package object pp {
 
   /** Renders as a new line unless it is discarded by a group, in which case behaves like `space` */
   @inline
-  val line: Doc = LineDoc(TextDoc(" "))
+  val line: Doc = LineDoc(" ")
 
   /** Renders as a new line unless it is discarded by a group, in which case behaves like `empty` */
   @inline
   val linebreak: Doc =
-    LineDoc(EmptyDoc)
+    LineDoc("")
 
   /** Behaves like `space` if the result fits in the page, otherwise behaves like `line` */
   @inline
@@ -58,7 +80,7 @@ package object pp {
 
   /** Behaves like a new line unless it is discarded by a group, in which case, behaves like the replacement document */
   @inline
-  def lineOr(replacement: => Doc): Doc =
+  def lineOr(replacement: => String): Doc =
     LineDoc(replacement)
 
   /** Renders as an empty string */
@@ -131,7 +153,7 @@ package object pp {
   /** Discards all line breaks in the given document if the result fits in the page, otherwise, renders without any changes */
   @inline
   def group(doc: Doc): Doc =
-    UnionDoc(doc.flatten, doc)
+    GroupDoc(doc)
 
   /** Renders the document as usual, and then fills until `width` with spaces if necessary */
   @inline
