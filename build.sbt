@@ -84,7 +84,7 @@ pomExtra := (
   </issueManagement>
 )
 
-lazy val benchmarks = project in file("benchmarks") dependsOn(root)
+lazy val benchmarks = project in file("benchmarks") aggregate (root)
 
 scalaVersion in benchmarks := "2.11.8"
 

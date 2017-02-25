@@ -30,5 +30,4 @@ class ListCombinatorsTest extends PpTest {
     val test2 = "some" :+: align(vsep(someText))
     render80(test2) should be("some text\n     to\n     lay\n     out")
   }
-
 }
