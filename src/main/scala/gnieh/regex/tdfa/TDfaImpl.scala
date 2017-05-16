@@ -125,8 +125,8 @@ object TDfaImpl extends RegexImpl {
           val newState2 = builder.createState
           builder.addEpsTransition(lastState1, Set(currentSave + 1), newState2)
           (currentSave1, newState2)
-        case _ =>
-          throw new RuntimeException("Should never happen")
+        case n =>
+          throw new RuntimeException(f"Unsupported regeular expression in TDFA implementation.")
       }
     }
     val builder = new TNfaBuilder[Char]
