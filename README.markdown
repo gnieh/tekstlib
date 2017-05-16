@@ -3,18 +3,12 @@ Gnieh Tekstlib [![Build Status](https://travis-ci.org/gnieh/tekstlib.png)](https
 
 Gnieh Tekstlib is a library grouping standard classes and packages allowing people to work with texts and documents.
 
-Version 0.1.0-SNAPSHOT is published to Sonatype snapshots maven repository and is built for Scala 2.11 and 2.12.
+Tekstlib is published to Sonatype snapshots maven repository and is built for Scala 2.11 and 2.12.
 
 Here is what you want to use in your SBT file
 
-```
-resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
-```
-
-and
-
-```
-libraryDependencies += "org.gnieh" %% "tekstlib" % "0.1.0-SNAPSHOT"
+```scala
+libraryDependencies += "org.gnieh" %% "tekstlib" % "0.1.0"
 ```
 
 Package Structure
