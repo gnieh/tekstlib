@@ -35,7 +35,7 @@ object Compiler {
           (currentSave, startIdx + 1, Vector(CharMatch(c)))
         case AnyChar =>
           // any
-          (currentSave, startIdx + 1, Vector(AnyMatch()))
+          (currentSave, startIdx + 1, Vector(AnyMatch))
         case Concat(e1, e2) =>
           // comp(e1)
           // comp(e2)
@@ -89,7 +89,7 @@ object Compiler {
           val (currentSave1, idx1, v1) = loop(currentSave, startIdx, e)
           (currentSave1, idx1 + 1, v1 ++ Vector(Split(startIdx, idx1 + 1)))
         case Plus(e, false) =>
-          // greedy version
+          // non greedy version
           // L1: comp(e)
           // split L2, L1
           // L2:
@@ -104,6 +104,12 @@ object Compiler {
           // save n + 1
           val (currentSave1, idx1, v1) = loop(currentSave + 2, startIdx + 1, e)
           (currentSave1, idx1 + 1, Vector(Save(currentSave)) ++ v1 ++ Vector(Save(currentSave + 1)))
+        case StartAnchor =>
+          // check_start
+          (currentSave, startIdx + 1, Vector(CheckStart))
+        case EndAnchor =>
+          // check_end
+          (currentSave, startIdx + 1, Vector(CheckEnd))
         case _ =>
           throw new RuntimeException("Should never happen")
       }

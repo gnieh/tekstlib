@@ -125,8 +125,8 @@ object TDfaImpl extends RegexImpl {
           val newState2 = builder.createState
           builder.addEpsTransition(lastState1, Set(currentSave + 1), newState2)
           (currentSave1, newState2)
-        case _ =>
-          throw new RuntimeException("Should never happen")
+        case n =>
+          throw new RuntimeException(f"Unsupported regeular expression in TDFA implementation.")
       }
     }
     val builder = new TNfaBuilder[Char]
@@ -163,7 +163,6 @@ object TDfaImpl extends RegexImpl {
 
   private def step(tdfa: TDfa[Char], currentState: State, currentIdx: Int, string: String, tags: Vector[Int], maps: Map[Long, Int]): Option[(State, Vector[Int], Map[Long, Int])] =
     if (currentIdx < string.size) {
-      println(f"Step with character ${string(currentIdx)} at index $currentIdx in state $currentState")
       for ((target, commands) <- tdfa.step(currentState, string.charAt(currentIdx))) yield {
         val (tags1, maps1) =
           commands.foldLeft((tags, maps)) {

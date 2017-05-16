@@ -33,9 +33,6 @@ object VM {
    *  It returns a lazily constructed streamm of all matches in the input.
    */
   def exec(program: Vector[Inst], nbSaved: Int, startIdx: Int, string: String): (Int, Int, Vector[Int]) = {
-    //println("executing:")
-    //println(util.Debug.print(program))
-    //println(s"with input: $string")
 
     val emptySaved = Vector.fill(nbSaved * 2)(-1)
 
@@ -80,10 +77,8 @@ object VM {
         Next(acc)
       } else {
         val ((RThread(startIdx, pc, saved), tail)) = threads.dequeue
-        //println(s"at index: $idx with char: $char")
-        //println(s"threads: $threads")
         program(pc) match {
-          case AnyMatch() =>
+          case AnyMatch =>
             // any characters matches
             loop(tail, schedule(program, RThread(if (startIdx >= 0) startIdx else idx, pc + 1, saved), acc, idx + 1))
           case CharMatch(c) if char == Some(c) =>
@@ -102,6 +97,15 @@ object VM {
           case MatchFound =>
             // a match was found
             Matched(startIdx, idx, saved, acc)
+          case CheckStart if idx == 0 =>
+            // start anchor ok, schedule the next instruction in this thread and try further
+            loop(tail, schedule(program, RThread(if (startIdx >= 0) startIdx else idx, pc + 1, saved), acc, idx + 1))
+          case CheckEnd if char.isEmpty =>
+            // end anchor ok, schedule the next instruction in this thread and try further
+            loop(tail, schedule(program, RThread(if (startIdx >= 0) startIdx else idx, pc + 1, saved), acc, idx + 1))
+          case CheckStart | CheckEnd =>
+            // anchor nok, discard this thread
+            loop(tail, acc)
         }
       }
     loop(threads, ThreadQueue())

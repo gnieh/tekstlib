@@ -59,5 +59,22 @@ package object regex {
 
   }
 
+  /** The standard library implementation. */
+  object std {
+
+    implicit class RegexString(val string: String) extends AnyVal {
+
+      def re = string.r
+
+    }
+
+    implicit class RegexContext(val sc: StringContext) extends AnyVal {
+
+      def re = sc.parts.mkString.r
+
+    }
+
+  }
+
 }
 
