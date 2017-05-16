@@ -21,6 +21,7 @@ Package Structure
 -----------------
 
  - `gnieh.diff` diff manipulation,
+ - `gnieh.matching` string matching algorithms (exact or fuzzy),
  - `gnieh.hyphen` hyphenation for text in any language,
  - `gnieh.string` strings manipulation for text processing,
  - `gnieh.mustache` lightweight mustache template processor,
