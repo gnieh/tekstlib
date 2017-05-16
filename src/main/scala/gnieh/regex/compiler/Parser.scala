@@ -84,7 +84,6 @@ object Parser {
         // do not use map here to have a tail recuvrsive function
         parseRe(input, state, level, stack, offset) match {
           case Success((newState, newLevel, newStack, newOffset)) =>
-            //println(newStack)
             loop(newState, newLevel, newStack, newOffset)
           case Failure(e) =>
             Failure(e)

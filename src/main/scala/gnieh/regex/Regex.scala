@@ -36,15 +36,12 @@ class Regex(re: Either[ReNode, String], impl: RegexImpl) extends Serializable {
     case Right(source) => impl.compile(Parser.parse(source).get)
   }
 
-  //println(util.Debug.print(compiled))
-
   /** Tells whether this regular expression is matched by the given input */
   def isMatchedBy(input: String): Boolean =
     impl.exec(compiled, saved, 0, input) match {
       case (-1, -1, _) =>
         false
       case (start, end, _) =>
-        //println(s"$input matches from $start to $end")
         start == 0 && end == input.length
     }
 

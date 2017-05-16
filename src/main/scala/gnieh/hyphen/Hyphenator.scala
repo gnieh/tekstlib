@@ -110,9 +110,6 @@ class Hyphenator(val language: String, pats: List[String], exns: List[String], v
           // no hyphenation can occur between the first two and last two letters
           val hyphenationPoints = List(0) ++ points.slice(3, points.size - 2) ++ List(0, 0)
 
-          //println(word)
-          //println(hyphenationPoints)
-
           @tailrec
           def insertHyphens(word: String, points: List[Int], current: String, acc: List[String]): List[String] = (word, points) match {
             case (null | "", _) =>

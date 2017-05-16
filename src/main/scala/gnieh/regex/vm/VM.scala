@@ -33,9 +33,6 @@ object VM {
    *  It returns a lazily constructed streamm of all matches in the input.
    */
   def exec(program: Vector[Inst], nbSaved: Int, startIdx: Int, string: String): (Int, Int, Vector[Int]) = {
-    //println("executing:")
-    //println(util.Debug.print(program))
-    //println(s"with input: $string")
 
     val emptySaved = Vector.fill(nbSaved * 2)(-1)
 
@@ -80,8 +77,6 @@ object VM {
         Next(acc)
       } else {
         val ((RThread(startIdx, pc, saved), tail)) = threads.dequeue
-        //println(s"at index: $idx with char: $char")
-        //println(s"threads: $threads")
         program(pc) match {
           case AnyMatch =>
             // any characters matches
