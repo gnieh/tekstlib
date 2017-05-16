@@ -4,13 +4,13 @@ name := "tekstlib"
 
 version := "0.1.0-SNAPSHOT"
 
-scalaVersion := "2.12.0"
+scalaVersion := "2.12.2"
 
-crossScalaVersions := Seq("2.12.0", "2.11.8")
+crossScalaVersions := Seq("2.12.2", "2.11.8")
 
-libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.0" % "test"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.3" % "test"
 
-libraryDependencies += "org.scodec" %% "scodec-bits" % "1.1.0"
+libraryDependencies += "org.scodec" %% "scodec-bits" % "1.1.4"
 
 scalacOptions in (Compile, doc) ++= Seq("-doc-root-content", "rootdoc.txt")
 
@@ -54,7 +54,8 @@ publishMavenStyle := true
 publishArtifact in Test := false
 
 // The Nexus repo we're publishing to.
-publishTo <<= version { (v: String) =>
+publishTo := {
+  val v = version.value
   val nexus = "https://oss.sonatype.org/"
     if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
     else Some("releases" at nexus + "service/local/staging/deploy/maven2")
