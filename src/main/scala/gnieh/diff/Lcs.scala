@@ -62,19 +62,24 @@ abstract class Lcs[T] {
       val size1 = middle1.size
       val size2 = middle2.size
 
-      val (short, long) =
-        if (size1 < size2) (middle1, middle2) else (middle2, middle1)
-      val idx = long.indexOfSlice(short)
-      if (idx >= 0) {
-        // speedup if one middle is contained in the other
-        if (size1 < size2) {
-          acc = Common(low1 + psize, low2 + idx + psize, size1) :: acc
+      if (size1 > 0 && size2 > 0) {
+        // if at least one middle is empty, then there cannot be any more common
+        // sub-sequence, and we can stop after computing common prefix and suffix
+        // otherwise we try to be clever about it
+        val (short, long) =
+          if (size1 < size2) (middle1, middle2) else (middle2, middle1)
+        val idx = long.indexOfSlice(short)
+        if (idx >= 0) {
+          // speedup if one middle is contained in the other
+          if (size1 < size2) {
+            acc = Common(low1 + psize, low2 + idx + psize, size1) :: acc
+          } else {
+            acc = Common(idx + low1 + psize, low2 + psize, size2) :: acc
+          }
         } else {
-          acc = Common(idx + low1 + psize, low2 + psize, size2) :: acc
-        }
-      } else {
-        acc = lcsInner(middle1, low1 + psize, middle2, low2 + psize).foldLeft(acc) { (acc, common) =>
-          common :: acc
+          acc = lcsInner(middle1, low1 + psize, middle2, low2 + psize).foldLeft(acc) { (acc, common) =>
+            common :: acc
+          }
         }
       }
 
@@ -107,9 +112,10 @@ abstract class Lcs[T] {
         prefixLoop(idx + 1)
       }
     val prefix = prefixLoop(0)
+    val (endPrefix1, endPrefix2) = prefix.map { case Common(s1, s2, l) => (s1 + l, s2 + l) } getOrElse ((0, 0))
     @tailrec
     def suffixLoop(idx1: Int, idx2: Int, l: Int): Option[Common] =
-      if (idx1 < 0 || idx2 < 0 || seq1(idx1) != seq2(idx2)) {
+      if (idx1 < endPrefix1 || idx2 < endPrefix2 || seq1(idx1) != seq2(idx2)) {
         if (l == 0) {
           None
         } else {

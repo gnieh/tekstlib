@@ -92,4 +92,15 @@ abstract class TestLcs extends FlatSpec with Matchers {
 
   }
 
+  it should "not include an empty common element" in {
+
+    val str1 = "aabbcc"
+    val str2 = "aacc"
+
+    val lcs = lcsImpl.lcs(str1, str2)
+
+    lcs should be(List(Common(0, 0, 2), Common(4, 2, 2)))
+
+  }
+
 }
