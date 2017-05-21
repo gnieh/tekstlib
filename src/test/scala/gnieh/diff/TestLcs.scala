@@ -5,7 +5,7 @@ import org.scalatest._
 
 abstract class TestLcs extends FlatSpec with Matchers {
 
-  val lcsImpl: Lcs[Char]
+  val lcsImpl: Lcs
 
   "the lcs of an empty sequence and another sequence" should "be the empty sequence" in {
 

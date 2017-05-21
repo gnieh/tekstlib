@@ -17,9 +17,9 @@ import scala.annotation.tailrec
 
 import scala.collection.mutable.ListBuffer
 
-class MyersLcs[T] extends Lcs[T] {
+class MyersLcs extends Lcs {
 
-  def lcsInner(seq1: IndexedSeq[T], low1: Int, seq2: IndexedSeq[T], low2: Int): List[Common] = {
+  def lcsInner[T](seq1: IndexedSeq[T], low1: Int, seq2: IndexedSeq[T], low2: Int): List[Common] = {
     val size1 = seq1.size
     val size2 = seq2.size
     val max = 1 + size1 + size2

@@ -20,20 +20,20 @@ import scala.annotation.tailrec
  *
  *  @author Lucas Satabin
  */
-abstract class Lcs[T] {
+abstract class Lcs {
 
   /** Computes the longest commons subsequence between both inputs.
    *  Returns an ordered list containing the indices in the first sequence and in the second sequence.
    */
   @inline
-  def lcs(seq1: IndexedSeq[T], seq2: IndexedSeq[T]): List[Common] =
+  def lcs[T](seq1: IndexedSeq[T], seq2: IndexedSeq[T]): List[Common] =
     lcs(seq1, seq2, 0, seq1.size, 0, seq2.size)
 
   /** Computest the longest common subsequence between both input slices.
    *  Returns an ordered list containing the indices in the first sequence and in the second sequence.
    *  Before calling the actual lcs algorithm, it performs some preprocessing to detect trivial solutions.
    */
-  def lcs(s1: IndexedSeq[T], s2: IndexedSeq[T], low1: Int, high1: Int, low2: Int, high2: Int): List[Common] = {
+  def lcs[T](s1: IndexedSeq[T], s2: IndexedSeq[T], low1: Int, high1: Int, low2: Int, high2: Int): List[Common] = {
     val seq1 = s1.slice(low1, high1)
     val seq2 = s2.slice(low2, high2)
 
@@ -93,10 +93,10 @@ abstract class Lcs[T] {
   /** Computest the longest common subsequence between both input slices.
    *  Returns an ordered list containing the indices in the first sequence and in the second sequence.
    */
-  def lcsInner(s1: IndexedSeq[T], low1: Int, s2: IndexedSeq[T], low2: Int): List[Common]
+  def lcsInner[T](s1: IndexedSeq[T], low1: Int, s2: IndexedSeq[T], low2: Int): List[Common]
 
   /* Extract common prefix and suffix from both sequences */
-  private def splitPrefixSuffix(seq1: IndexedSeq[T], seq2: IndexedSeq[T], low1: Int, low2: Int): (Option[Common], IndexedSeq[T], IndexedSeq[T], Option[Common]) = {
+  private def splitPrefixSuffix[T](seq1: IndexedSeq[T], seq2: IndexedSeq[T], low1: Int, low2: Int): (Option[Common], IndexedSeq[T], IndexedSeq[T], Option[Common]) = {
     val size1 = seq1.size
     val size2 = seq2.size
     val size = math.min(size1, size2)

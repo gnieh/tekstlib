@@ -17,9 +17,9 @@ package gnieh.diff
 
 import scala.annotation.tailrec
 
-class LcsDiff[T](lcsalg: Lcs[T]) {
+class LcsDiff(lcsalg: Lcs) {
 
-  def diff(s1: IndexedSeq[T], s2: IndexedSeq[T]): List[Diff] = {
+  def diff[T](s1: IndexedSeq[T], s2: IndexedSeq[T]): List[Diff] = {
     val lcs = lcsalg.lcs(s1, s2)
     @tailrec
     def loop(lcs: List[Common], idx1: Int, idx2: Int, acc: List[Diff]): List[Diff] =

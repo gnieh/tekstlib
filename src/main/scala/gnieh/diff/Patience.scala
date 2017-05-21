@@ -24,19 +24,19 @@ import scala.collection.SeqView
  *  @param withFallback whether to fallback to classic LCS when patience could not find the LCS
  *  @author Lucas Satabin
  */
-class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
+class Patience(withFallback: Boolean = true) extends Lcs {
 
   // algorithm we fall back to when patience algorithm is unable to find the LCS
-  private val classicLcs: Option[Lcs[T]] =
-    if (withFallback) Some(new MyersLcs[T]) else None
+  private val classicLcs: Option[Lcs] =
+    if (withFallback) Some(new MyersLcs) else None
 
   /** An occurrence of a value associated to its index */
-  type Occurrence = (T, Int)
+  type Occurrence[T] = (T, Int)
 
   /** Returns occurrences that appear only once in the list, associated with their index */
-  private def uniques(l: SeqView[T, IndexedSeq[T]]): List[Occurrence] = {
+  private def uniques[T](l: SeqView[T, IndexedSeq[T]]): List[Occurrence[T]] = {
     @tailrec
-    def loop(idx: Int, acc: Map[T, Int]): List[Occurrence] =
+    def loop(idx: Int, acc: Map[T, Int]): List[Occurrence[T]] =
       if (idx >= l.size) {
         acc.toList
       } else {
@@ -52,9 +52,9 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
   }
 
   /** Takes all occurences from the first sequence and order them as in the second sequence if it is present */
-  private def common(l1: List[Occurrence], l2: List[Occurrence]): List[(Occurrence, Int)] = {
+  private def common[T](l1: List[Occurrence[T]], l2: List[Occurrence[T]]): List[(Occurrence[T], Int)] = {
     @tailrec
-    def loop(l: List[Occurrence], acc: List[(Occurrence, Int)]): List[(Occurrence, Int)] = l match {
+    def loop(l: List[Occurrence[T]], acc: List[(Occurrence[T], Int)]): List[(Occurrence[T], Int)] = l match {
       case occ :: tl =>
         // find the element in the second sequence if present
         l2.find(_._1 == occ._1) match {
@@ -69,7 +69,7 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
   }
 
   /** Returns the list of elements that appear only once in both l1 and l2 ordered as they appear in l2 with their index in l1 */
-  private def uniqueCommons(seq1: SeqView[T, IndexedSeq[T]], seq2: SeqView[T, IndexedSeq[T]]): List[(Occurrence, Int)] = {
+  private def uniqueCommons[T](seq1: SeqView[T, IndexedSeq[T]], seq2: SeqView[T, IndexedSeq[T]]): List[(Occurrence[T], Int)] = {
     // the values that occur only once in the first sequence
     val uniques1 = uniques(seq1)
     // the values that occur only once in the second sequence
@@ -79,7 +79,7 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
   }
 
   /** Returns the longest sequence */
-  private def longest(l: List[(Occurrence, Int)]): List[Common] = {
+  private def longest[T](l: List[(Occurrence[T], Int)]): List[Common] = {
     if (l.isEmpty) {
       Nil
     } else {
@@ -98,7 +98,7 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
           // this case should NEVER happen
           throw new Exception("No empty stack must exist")
       }
-      def sort(l: List[(Occurrence, Int)]): List[List[Stacked]] =
+      def sort(l: List[(Occurrence[T], Int)]): List[List[Stacked]] =
         l.foldLeft(List[List[Stacked]]()) {
           case (acc, ((_, idx1), idx2)) =>
             push(idx1, idx2, acc, None, Nil)
@@ -114,7 +114,7 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
   /** Computes the longest common subsequence between both sequences.
    *  It is encoded as the list of common indices in the first and the second sequence.
    */
-  def lcsInner(seq1: IndexedSeq[T], glow1: Int, seq2: IndexedSeq[T], glow2: Int): List[Common] = {
+  def lcsInner[T](seq1: IndexedSeq[T], glow1: Int, seq2: IndexedSeq[T], glow2: Int): List[Common] = {
     // fill the holes with possibly common (not unique) elements
     def loop(low1: Int, low2: Int, high1: Int, high2: Int, acc: List[Common]): List[Common] =
       if (low1 >= high1 || low2 >= high2) {
