@@ -21,7 +21,7 @@ import scala.annotation.tailrec
  */
 class DynamicProgLcs extends Lcs {
 
-  def lcsInner[T](seq1: IndexedSeq[T], low1: Int, seq2: IndexedSeq[T], low2: Int): List[Common] = {
+  def lcsInner[Coll, T](seq1: Coll, low1: Int, seq2: Coll, low2: Int)(implicit indexable: Indexable[Coll, T]): List[Common] = {
     val lengths = Array.ofDim[Int](seq1.size + 1, seq2.size + 1)
     // fill up the length matrix
     for {

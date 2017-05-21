@@ -26,14 +26,14 @@ abstract class Lcs {
    *  Returns an ordered list containing the indices in the first sequence and in the second sequence.
    */
   @inline
-  def lcs[T](seq1: IndexedSeq[T], seq2: IndexedSeq[T]): List[Common] =
+  def lcs[Coll, T](seq1: Coll, seq2: Coll)(implicit indexable: Indexable[Coll, T]): List[Common] =
     lcs(seq1, seq2, 0, seq1.size, 0, seq2.size)
 
   /** Computest the longest common subsequence between both input slices.
    *  Returns an ordered list containing the indices in the first sequence and in the second sequence.
    *  Before calling the actual lcs algorithm, it performs some preprocessing to detect trivial solutions.
    */
-  def lcs[T](s1: IndexedSeq[T], s2: IndexedSeq[T], low1: Int, high1: Int, low2: Int, high2: Int): List[Common] = {
+  def lcs[Coll, T](s1: Coll, s2: Coll, low1: Int, high1: Int, low2: Int, high2: Int)(implicit indexable: Indexable[Coll, T]): List[Common] = {
     val seq1 = s1.slice(low1, high1)
     val seq2 = s2.slice(low2, high2)
 
@@ -93,10 +93,10 @@ abstract class Lcs {
   /** Computest the longest common subsequence between both input slices.
    *  Returns an ordered list containing the indices in the first sequence and in the second sequence.
    */
-  def lcsInner[T](s1: IndexedSeq[T], low1: Int, s2: IndexedSeq[T], low2: Int): List[Common]
+  def lcsInner[Coll, T](s1: Coll, low1: Int, s2: Coll, low2: Int)(implicit indexable: Indexable[Coll, T]): List[Common]
 
   /* Extract common prefix and suffix from both sequences */
-  private def splitPrefixSuffix[T](seq1: IndexedSeq[T], seq2: IndexedSeq[T], low1: Int, low2: Int): (Option[Common], IndexedSeq[T], IndexedSeq[T], Option[Common]) = {
+  private def splitPrefixSuffix[Coll, T](seq1: Coll, seq2: Coll, low1: Int, low2: Int)(implicit indexable: Indexable[Coll, T]): (Option[Common], Coll, Coll, Option[Common]) = {
     val size1 = seq1.size
     val size2 = seq2.size
     val size = math.min(size1, size2)
@@ -127,7 +127,7 @@ abstract class Lcs {
     val suffix = suffixLoop(size1 - 1, size2 - 1, 0)
     val psize = prefix.map(_.length).getOrElse(0)
     val ssize = suffix.map(_.length).getOrElse(0)
-    (prefix, seq1.drop(psize).dropRight(ssize), seq2.drop(psize).dropRight(ssize), suffix)
+    (prefix, seq1.slice(psize, seq1.size - ssize), seq2.slice(psize, seq2.size - ssize), suffix)
   }
 
   protected def push(idx1: Int, idx2: Int, commons: List[Common], back: Boolean): List[Common] =

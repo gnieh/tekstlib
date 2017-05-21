@@ -19,7 +19,7 @@ import scala.annotation.tailrec
 
 class LcsDiff(lcsalg: Lcs) {
 
-  def diff[T](s1: IndexedSeq[T], s2: IndexedSeq[T]): List[Diff] = {
+  def diff[Coll, T](s1: Coll, s2: Coll)(implicit indexable: Indexable[Coll, T]): List[Diff] = {
     val lcs = lcsalg.lcs(s1, s2)
     @tailrec
     def loop(lcs: List[Common], idx1: Int, idx2: Int, acc: List[Diff]): List[Diff] =
@@ -34,7 +34,6 @@ class LcsDiff(lcsalg: Lcs) {
           else
             acc.reverse
         case Common(start1, start2, _) :: _ if idx1 < start1 || idx2 < start2 =>
-          // assert(idx1 < s1.size && idx2 < s2.size)
           if (idx1 < start1 && idx2 < start2)
             loop(lcs, start1, start2, Second(idx2, start2) :: First(idx1, start1) :: acc)
           else if (idx1 < start1)
@@ -42,7 +41,6 @@ class LcsDiff(lcsalg: Lcs) {
           else
             loop(lcs, idx1, start2, Second(idx2, start2) :: acc)
         case Common(start1, start2, length) :: rest if length > 0 =>
-          // assert(start1 == idx1 && start2 == idx2)
           loop(rest, start1 + length, start2 + length, Both(start1, start1 + length, start2, start2 + length) :: acc)
         case Common(start1, start2, _) :: rest =>
           loop(rest, start1, start2, acc)

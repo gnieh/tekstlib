@@ -15,8 +15,6 @@ package gnieh.diff
 
 import scala.annotation.tailrec
 
-import scala.collection.SeqView
-
 /** Implementation of the patience algorithm [1] to compute the longest common subsequence
  *
  *  [1] http://alfedenzo.livejournal.com/170301.html
@@ -34,7 +32,7 @@ class Patience(withFallback: Boolean = true) extends Lcs {
   type Occurrence[T] = (T, Int)
 
   /** Returns occurrences that appear only once in the list, associated with their index */
-  private def uniques[T](l: SeqView[T, IndexedSeq[T]]): List[Occurrence[T]] = {
+  private def uniques[Coll, T](l: Coll)(implicit indexable: Indexable[Coll, T]): List[Occurrence[T]] = {
     @tailrec
     def loop(idx: Int, acc: Map[T, Int]): List[Occurrence[T]] =
       if (idx >= l.size) {
@@ -69,7 +67,7 @@ class Patience(withFallback: Boolean = true) extends Lcs {
   }
 
   /** Returns the list of elements that appear only once in both l1 and l2 ordered as they appear in l2 with their index in l1 */
-  private def uniqueCommons[T](seq1: SeqView[T, IndexedSeq[T]], seq2: SeqView[T, IndexedSeq[T]]): List[(Occurrence[T], Int)] = {
+  private def uniqueCommons[Coll, T](seq1: Coll, seq2: Coll)(implicit indexable: Indexable[Coll, T]): List[(Occurrence[T], Int)] = {
     // the values that occur only once in the first sequence
     val uniques1 = uniques(seq1)
     // the values that occur only once in the second sequence
@@ -114,7 +112,7 @@ class Patience(withFallback: Boolean = true) extends Lcs {
   /** Computes the longest common subsequence between both sequences.
    *  It is encoded as the list of common indices in the first and the second sequence.
    */
-  def lcsInner[T](seq1: IndexedSeq[T], glow1: Int, seq2: IndexedSeq[T], glow2: Int): List[Common] = {
+  def lcsInner[Coll, T](seq1: Coll, glow1: Int, seq2: Coll, glow2: Int)(implicit indexable: Indexable[Coll, T]): List[Common] = {
     // fill the holes with possibly common (not unique) elements
     def loop(low1: Int, low2: Int, high1: Int, high2: Int, acc: List[Common]): List[Common] =
       if (low1 >= high1 || low2 >= high2) {
@@ -123,7 +121,7 @@ class Patience(withFallback: Boolean = true) extends Lcs {
         var lastPos1 = low1 - 1
         var lastPos2 = low2 - 1
         var answer = acc
-        for (Common(p1, p2, l) <- longest(uniqueCommons(seq1.view(low1, high1), seq2.view(low2, high2)))) {
+        for (Common(p1, p2, l) <- longest(uniqueCommons(seq1.slice(low1, high1), seq2.slice(low2, high2)))) {
           // recurse between lines which are unique in each sequence
           val pos1 = p1 + low1
           val pos2 = p2 + low2
