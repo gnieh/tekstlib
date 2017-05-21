@@ -24,7 +24,7 @@ package object diff extends IndexableInstances {
       indexable.isEmpty(coll)
 
     @inline
-    def startsWith(that: Coll)(implicit indexable: Indexable[Coll, T]): Boolean =
+    def startsWith(that: Coll)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): Boolean =
       indexable.startsWith(coll, that)
 
     @inline
@@ -36,12 +36,12 @@ package object diff extends IndexableInstances {
       indexable.slice(coll, start, end)
 
     @inline
-    def indexOfSlice(slice: Coll)(implicit indexable: Indexable[Coll, T]): Int =
-      indexable.indexOfSlice(coll, slice)
-
-    @inline
     def apply(idx: Int)(implicit indexable: Indexable[Coll, T]): T =
       indexable.apply(coll, idx)
+
+    @inline
+    def equivalent(that: Coll)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): Boolean =
+      indexable.equivalent(coll, that)
 
   }
 

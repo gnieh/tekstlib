@@ -26,21 +26,21 @@ abstract class Lcs {
    *  Returns an ordered list containing the indices in the first sequence and in the second sequence.
    */
   @inline
-  def lcs[Coll, T](seq1: Coll, seq2: Coll)(implicit indexable: Indexable[Coll, T]): List[Common] =
+  def lcs[Coll, T](seq1: Coll, seq2: Coll)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): List[Common] =
     lcs(seq1, seq2, 0, seq1.size, 0, seq2.size)
 
   /** Computest the longest common subsequence between both input slices.
    *  Returns an ordered list containing the indices in the first sequence and in the second sequence.
    *  Before calling the actual lcs algorithm, it performs some preprocessing to detect trivial solutions.
    */
-  def lcs[Coll, T](s1: Coll, s2: Coll, low1: Int, high1: Int, low2: Int, high2: Int)(implicit indexable: Indexable[Coll, T]): List[Common] = {
+  def lcs[Coll, T](s1: Coll, s2: Coll, low1: Int, high1: Int, low2: Int, high2: Int)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): List[Common] = {
     val seq1 = s1.slice(low1, high1)
     val seq2 = s2.slice(low2, high2)
 
     if (seq1.isEmpty || seq2.isEmpty) {
       // shortcut if at least on sequence is empty, the lcs, is empty as well
       Nil
-    } else if (seq1 == seq2) {
+    } else if (indexable.equivalent(seq1, seq2)) {
       // both sequences are equal, the lcs is either of them
       List(Common(low1, low2, seq1.size))
     } else if (seq1.startsWith(seq2)) {
@@ -93,16 +93,16 @@ abstract class Lcs {
   /** Computest the longest common subsequence between both input slices.
    *  Returns an ordered list containing the indices in the first sequence and in the second sequence.
    */
-  def lcsInner[Coll, T](s1: Coll, low1: Int, s2: Coll, low2: Int)(implicit indexable: Indexable[Coll, T]): List[Common]
+  def lcsInner[Coll, T](s1: Coll, low1: Int, s2: Coll, low2: Int)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): List[Common]
 
   /* Extract common prefix and suffix from both sequences */
-  private def splitPrefixSuffix[Coll, T](seq1: Coll, seq2: Coll, low1: Int, low2: Int)(implicit indexable: Indexable[Coll, T]): (Option[Common], Coll, Coll, Option[Common]) = {
+  private def splitPrefixSuffix[Coll, T](seq1: Coll, seq2: Coll, low1: Int, low2: Int)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): (Option[Common], Coll, Coll, Option[Common]) = {
     val size1 = seq1.size
     val size2 = seq2.size
     val size = math.min(size1, size2)
     @tailrec
     def prefixLoop(idx: Int): Option[Common] =
-      if (idx >= size || seq1(idx) != seq2(idx)) {
+      if (idx >= size || !equiv.equiv(seq1(idx), seq2(idx))) {
         if (idx == 0) {
           None
         } else {
@@ -112,10 +112,10 @@ abstract class Lcs {
         prefixLoop(idx + 1)
       }
     val prefix = prefixLoop(0)
-    val (endPrefix1, endPrefix2) = prefix.map { case Common(s1, s2, l) => (s1 + l, s2 + l) } getOrElse ((0, 0))
+    val (prefixEnd1, prefixEnd2) = prefix.map { case Common(s1, s2, l) => (s1 + l, s2 + l) } getOrElse ((0, 0))
     @tailrec
     def suffixLoop(idx1: Int, idx2: Int, l: Int): Option[Common] =
-      if (idx1 < endPrefix1 || idx2 < endPrefix2 || seq1(idx1) != seq2(idx2)) {
+      if (idx1 < prefixEnd1 || idx2 < prefixEnd2 || !equiv.equiv(seq1(idx1), seq2(idx2))) {
         if (l == 0) {
           None
         } else {

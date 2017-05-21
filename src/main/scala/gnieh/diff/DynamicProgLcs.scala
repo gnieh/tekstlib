@@ -21,13 +21,13 @@ import scala.annotation.tailrec
  */
 class DynamicProgLcs extends Lcs {
 
-  def lcsInner[Coll, T](seq1: Coll, low1: Int, seq2: Coll, low2: Int)(implicit indexable: Indexable[Coll, T]): List[Common] = {
+  def lcsInner[Coll, T](seq1: Coll, low1: Int, seq2: Coll, low2: Int)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): List[Common] = {
     val lengths = Array.ofDim[Int](seq1.size + 1, seq2.size + 1)
     // fill up the length matrix
     for {
       i <- 0 until seq1.size
       j <- 0 until seq2.size
-    } if (seq1(i) == seq2(j))
+    } if (equiv.equiv(seq1(i), seq2(j)))
       lengths(i + 1)(j + 1) = lengths(i)(j) + 1
     else
       lengths(i + 1)(j + 1) = math.max(lengths(i + 1)(j), lengths(i)(j + 1))

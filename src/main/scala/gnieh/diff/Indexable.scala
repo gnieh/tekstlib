@@ -17,7 +17,9 @@ package gnieh.diff
 
 import scala.language.higherKinds
 
-trait Indexable[Coll, Elem] {
+import scala.annotation.tailrec
+
+abstract class Indexable[Coll, Elem] {
 
   def apply(coll: Coll, idx: Int): Elem
 
@@ -27,9 +29,49 @@ trait Indexable[Coll, Elem] {
 
   def slice(coll: Coll, start: Int, end: Int): Coll
 
-  def indexOfSlice(coll: Coll, slice: Coll): Int
+  def startsWith(s1: Coll, s2: Coll)(implicit equiv: Equiv[Elem]): Boolean = {
+    @tailrec
+    def loop(idx: Int): Boolean =
+      if (idx < size(s1) && idx < size(s2)) {
+        if (equiv.equiv(apply(s1, idx), apply(s2, idx))) {
+          loop(idx + 1)
+        } else {
+          false
+        }
+      } else if (idx >= size(s2)) {
+        true
+      } else {
+        false
+      }
+    loop(0)
+  }
 
-  def startsWith(coll: Coll, that: Coll): Boolean
+  def equivalent(coll: Coll, that: Coll)(implicit equiv: Equiv[Elem]): Boolean = {
+    val s1 = size(coll)
+    val s2 = size(that)
+
+    if (s1 == s2) {
+      // same size, there is a chance they are equivalent
+      @tailrec
+      def loop(idx: Int): Boolean =
+        if (idx < s1) {
+          if (equiv.equiv(apply(coll, idx), apply(that, idx))) {
+            // elements are equivalent, continue
+            loop(idx + 1)
+          } else {
+            // non equivalent elements, stop
+            false
+          }
+        } else {
+          // end of collection for both, they are equivalent
+          true
+        }
+      loop(0)
+    } else {
+      false
+    }
+  }
+
 }
 
 trait IndexableInstances {
@@ -52,14 +94,6 @@ trait IndexableInstances {
     def slice(s: String, start: Int, end: Int) =
       s.slice(start, end)
 
-    @inline
-    def indexOfSlice(coll: String, slice: String): Int =
-      coll.indexOfSlice(slice)
-
-    @inline
-    def startsWith(s1: String, s2: String): Boolean =
-      s1.startsWith(s2)
-
   }
 
   implicit def IndexableIndexedSeq[T]: Indexable[IndexedSeq[T], T] = new Indexable[IndexedSeq[T], T] {
@@ -79,14 +113,6 @@ trait IndexableInstances {
     @inline
     def slice(s: IndexedSeq[T], start: Int, end: Int) =
       s.slice(start, end)
-
-    @inline
-    def indexOfSlice(coll: IndexedSeq[T], slice: IndexedSeq[T]): Int =
-      coll.indexOfSlice(slice)
-
-    @inline
-    def startsWith(s1: IndexedSeq[T], s2: IndexedSeq[T]): Boolean =
-      s1.startsWith(s2)
 
   }
 

@@ -50,12 +50,12 @@ class Patience(withFallback: Boolean = true) extends Lcs {
   }
 
   /** Takes all occurences from the first sequence and order them as in the second sequence if it is present */
-  private def common[T](l1: List[Occurrence[T]], l2: List[Occurrence[T]]): List[(Occurrence[T], Int)] = {
+  private def common[T](l1: List[Occurrence[T]], l2: List[Occurrence[T]])(implicit equiv: Equiv[T]): List[(Occurrence[T], Int)] = {
     @tailrec
     def loop(l: List[Occurrence[T]], acc: List[(Occurrence[T], Int)]): List[(Occurrence[T], Int)] = l match {
       case occ :: tl =>
         // find the element in the second sequence if present
-        l2.find(_._1 == occ._1) match {
+        l2.find(e => equiv.equiv(e._1, occ._1)) match {
           case Some((_, idx2)) => loop(tl, (occ -> idx2) :: acc)
           case None            => loop(tl, acc)
         }
@@ -112,7 +112,7 @@ class Patience(withFallback: Boolean = true) extends Lcs {
   /** Computes the longest common subsequence between both sequences.
    *  It is encoded as the list of common indices in the first and the second sequence.
    */
-  def lcsInner[Coll, T](seq1: Coll, glow1: Int, seq2: Coll, glow2: Int)(implicit indexable: Indexable[Coll, T]): List[Common] = {
+  def lcsInner[Coll, T](seq1: Coll, glow1: Int, seq2: Coll, glow2: Int)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): List[Common] = {
     // fill the holes with possibly common (not unique) elements
     def loop(low1: Int, low2: Int, high1: Int, high2: Int, acc: List[Common]): List[Common] =
       if (low1 >= high1 || low2 >= high2) {
@@ -136,21 +136,21 @@ class Patience(withFallback: Boolean = true) extends Lcs {
           // the size of the accumulator increased, find
           // matches between the last match and the end
           loop(lastPos1 + 1, lastPos2 + 1, high1, high2, answer)
-        } else if (seq1(low1) == seq2(low2)) {
+        } else if (equiv.equiv(seq1(low1), seq2(low2))) {
           // find lines that match at the beginning
           var newLow1 = low1
           var newLow2 = low2
-          while (newLow1 < high1 && newLow2 < high2 && seq1(newLow1) == seq2(newLow2)) {
+          while (newLow1 < high1 && newLow2 < high2 && equiv.equiv(seq1(newLow1), seq2(newLow2))) {
             answer = push(newLow1 + glow1, newLow2 + glow2, answer, false)
             newLow1 += 1
             newLow2 += 1
           }
           loop(newLow1, newLow2, high1, high2, answer)
-        } else if (seq1(high1 - 1) == seq2(high2 - 1)) {
+        } else if (equiv.equiv(seq1(high1 - 1), seq2(high2 - 1))) {
           // find lines that match at the end
           var newHigh1 = high1 - 1
           var newHigh2 = high2 - 1
-          while (newHigh1 > low1 && newHigh2 > low2 && seq1(newHigh1 - 1) == seq2(newHigh2 - 1)) {
+          while (newHigh1 > low1 && newHigh2 > low2 && equiv.equiv(seq1(newHigh1 - 1), seq2(newHigh2 - 1))) {
             newHigh1 -= 1
             newHigh2 -= 1
           }

@@ -19,7 +19,7 @@ import scala.annotation.tailrec
 
 class LcsDiff(lcsalg: Lcs) {
 
-  def diff[Coll, T](s1: Coll, s2: Coll)(implicit indexable: Indexable[Coll, T]): List[Diff] = {
+  def diff[Coll, T](s1: Coll, s2: Coll)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): List[Diff] = {
     val lcs = lcsalg.lcs(s1, s2)
     @tailrec
     def loop(lcs: List[Common], idx1: Int, idx2: Int, acc: List[Diff]): List[Diff] =

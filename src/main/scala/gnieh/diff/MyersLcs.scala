@@ -19,7 +19,7 @@ import scala.collection.mutable.ListBuffer
 
 class MyersLcs extends Lcs {
 
-  def lcsInner[Coll, T](seq1: Coll, low1: Int, seq2: Coll, low2: Int)(implicit indexable: Indexable[Coll, T]): List[Common] = {
+  def lcsInner[Coll, T](seq1: Coll, low1: Int, seq2: Coll, low2: Int)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): List[Common] = {
     val size1 = seq1.size
     val size2 = seq2.size
     val max = 1 + size1 + size2
@@ -36,7 +36,7 @@ class MyersLcs extends Lcs {
         else
           v(max + k - 1) + 1
       var y = x - k
-      while (x < size1 && y < size2 && seq1(x) == seq2(y)) {
+      while (x < size1 && y < size2 && equiv.equiv(seq1(x), seq2(y))) {
         acc = push(x + low1, y + low2, acc, false)
         x += 1
         y += 1
