@@ -103,4 +103,15 @@ abstract class TestLcs extends FlatSpec with Matchers {
 
   }
 
+  it should "not include overlapping prefix and suffix twice" in {
+
+    val str1 = "aabaa"
+    val str2 = "aaa"
+
+    val lcs = lcsImpl.lcs(str1, str2)
+
+    lcs should be(List(Common(0, 0, 2), Common(4, 2, 1)))
+
+  }
+
 }
