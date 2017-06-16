@@ -1,3 +1,5 @@
+lazy val Benchmark = config("bench") extend Test
+
 lazy val commonSettings = Seq(
   organization := "org.gnieh",
   name := "tekstlib",
@@ -65,14 +67,12 @@ lazy val root = project.in(file("."))
         <url>https://github.com/gnieh/tekstlib/issues</url>
       </issueManagement>
     ))
-
-lazy val benchmarks = project.in(file("benchmarks"))
-  .settings(commonSettings)
-  .settings(
-    scalaVersion := "2.11.8",
-    libraryDependencies += "com.storm-enroute" %% "scalameter" % "0.7",
-    testFrameworks += new TestFramework("org.scalameter.ScalaMeterFramework"),
-    parallelExecution in Test := false,
+	.settings(
+		parallelExecution in Benchmark := false,
     logBuffered := false,
-    scalacOptions ++= Seq("-deprecation", "-feature"))
-  .aggregate (root)
+    libraryDependencies += "com.storm-enroute" %% "scalameter" % "0.8.2" % "bench",
+    testFrameworks += new TestFramework("org.scalameter.ScalaMeterFramework"))
+	.configs(
+    Benchmark)
+	.settings(
+		inConfig(Benchmark)(Defaults.testSettings): _*)
