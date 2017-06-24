@@ -3,7 +3,7 @@ lazy val Benchmark = config("bench") extend Test
 lazy val commonSettings = Seq(
   organization := "org.gnieh",
   name := "tekstlib",
-  version := "0.2.0-SNAPSHOT",
+  version := "0.1.1",
   scalaVersion := "2.12.2",
   crossScalaVersions := Seq("2.12.2", "2.11.8"),
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.3" % "test",
@@ -37,12 +37,12 @@ lazy val root = project.in(file("."))
     publishMavenStyle := true,
     publishArtifact in Test := false,
     // The Nexus repo we're publishing to.
-    publishTo := {
-      val v = version.value
-      val nexus = "https://oss.sonatype.org/"
-        if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
-        else Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    },
+    publishTo := Some(
+      if (isSnapshot.value)
+        Opts.resolver.sonatypeSnapshots
+      else
+        Opts.resolver.sonatypeStaging
+    ),
     pomIncludeRepository := { x => false },
     pomExtra := (
       <scm>
