@@ -114,4 +114,10 @@ abstract class TestLcs extends FlatSpec with Matchers {
 
   }
 
+  it should "not overflow stack for arrays" in {
+    val s1 = "abcdefghij"
+    val s2 = "adekfg"
+    lcsImpl.lcs(s1, s2) shouldBe List(Common(0, 0, 1), Common(3, 1, 2), Common(5, 4, 2))
+  }
+
 }
