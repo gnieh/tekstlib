@@ -87,13 +87,13 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
       def push(idx1: Int, idx2: Int, stacks: List[List[Stacked]], last: Option[Stacked], acc: List[List[Stacked]]): List[List[Stacked]] = stacks match {
         case (stack @ (Stacked(idx, _, _) :: _)) :: tl if idx > idx1 =>
           // we found the right stack
-          acc.reverse ::: (Stacked(idx1, idx2, last) :: stack) :: tl
+          acc reverse_::: (Stacked(idx1, idx2, last) :: stack) :: tl
         case (stack @ (stacked :: _)) :: tl =>
           // try the next one
           push(idx1, idx2, tl, Some(stacked), stack :: acc)
         case Nil =>
           // no stack corresponds, create a new one
-          acc.reverse ::: List(List(Stacked(idx1, idx2, last)))
+          acc reverse_::: List(List(Stacked(idx1, idx2, last)))
         case Nil :: _ =>
           // this case should NEVER happen
           throw new Exception("No empty stack must exist")
@@ -125,14 +125,14 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
         var answer = acc
         for (Common(p1, p2, l) <- longest(uniqueCommons(seq1.view(low1, high1), seq2.view(low2, high2)))) {
           // recurse between lines which are unique in each sequence
-          val pos1 = p1 + low1 + glow1
-          val pos2 = p2 + low2 + glow2
+          val pos1 = p1 + low1
+          val pos2 = p2 + low2
           // most of the time we have sequences of similar entries
           if (lastPos1 + 1 != pos1 || lastPos2 + 1 != pos2)
             answer = loop(lastPos1 + 1, lastPos2 + 1, pos1, pos2, answer)
           lastPos1 = pos1
           lastPos2 = pos2
-          answer = push(Common(pos1, pos2, l), answer, false)
+          answer = push(Common(pos1 + glow1, pos2 + glow2, l), answer, false)
         }
         if (answer != acc) {
           // the size of the accumulator increased, find
