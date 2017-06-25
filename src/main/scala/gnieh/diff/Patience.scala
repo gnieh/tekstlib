@@ -166,7 +166,7 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
               // fall back to classic LCS algorithm when there is no unique common elements
               // between both sequences and they have no common prefix nor suffix
               // raw patience algorithm is not good for finding LCS in such cases
-              classicLcs.lcs(seq1, seq2).foldLeft(answer) { (acc, common) =>
+              classicLcs.lcs(seq1.slice(low1, high1), seq2.slice(low2, high2)).foldLeft(answer) { (acc, common) =>
                 push(Common(common.start1 + glow1, common.start2 + glow2, common.length), acc, false)
               }
 

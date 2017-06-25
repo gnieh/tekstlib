@@ -120,4 +120,10 @@ abstract class TestLcs extends FlatSpec with Matchers {
     lcsImpl.lcs(s1, s2) shouldBe List(Common(0, 0, 1), Common(3, 1, 2), Common(5, 4, 2))
   }
 
+  it should "not be computed twice if not only unique elements" in {
+    val s1 = "03"
+    val s2 = "101"
+    lcsImpl.lcs(s1, s2) should be(List(Common(0, 1, 1)))
+  }
+
 }
