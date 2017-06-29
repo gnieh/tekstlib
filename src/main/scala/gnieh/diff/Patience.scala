@@ -14,8 +14,7 @@
 package gnieh.diff
 
 import scala.annotation.tailrec
-
-import scala.collection.SeqView
+import scala.collection._
 
 /** Implementation of the patience algorithm [1] to compute the longest common subsequence
  *
@@ -34,38 +33,20 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
   type Occurrence = (T, Int)
 
   /** Returns occurrences that appear only once in the list, associated with their index */
-  private def uniques(l: SeqView[T, IndexedSeq[T]]): List[Occurrence] = {
-    @tailrec
-    def loop(idx: Int, acc: Map[T, Int]): List[Occurrence] =
-      if (idx >= l.size) {
-        acc.toList
-      } else {
-        val value = l(idx)
-        if (acc.contains(value)) {
-          // not unique, remove it from the accumulator and go further
-          loop(idx + 1, acc - value)
-        } else {
-          loop(idx + 1, acc.updated(value, idx))
-        }
-      }
-    loop(0, Map())
-  }
+  private def uniques(l: SeqView[T, IndexedSeq[T]]): List[Occurrence] =
+    l.zipWithIndex.foldLeft(Map.empty[T, Int]) {
+      case (acc, (value, idx)) =>
+        // if not unique, remove it from the accumulator and go further
+        if (acc.contains(value)) acc - value else acc.updated(value, idx)
+    }.toList
 
   /** Takes all occurences from the first sequence and order them as in the second sequence if it is present */
   private def common(l1: List[Occurrence], l2: List[Occurrence]): List[(Occurrence, Int)] = {
-    @tailrec
-    def loop(l: List[Occurrence], acc: List[(Occurrence, Int)]): List[(Occurrence, Int)] = l match {
-      case occ :: tl =>
-        // find the element in the second sequence if present
-        l2.find(_._1 == occ._1) match {
-          case Some((_, idx2)) => loop(tl, (occ -> idx2) :: acc)
-          case None            => loop(tl, acc)
-        }
-      case Nil =>
-        // sort by order of appearance in the second sequence
-        acc sortWith (_._2 < _._2)
-    }
-    loop(l1, Nil)
+    val l2Indices: Map[T, Int] = l2.map { case (t, idx) => t -> idx }(breakOut)
+    l1.foldLeft(List.empty[(Occurrence, Int)]) {
+      case (acc, occ @ (t, _)) =>
+        l2Indices.get(t).fold(acc)(idx => (occ -> idx) :: acc)
+    }.sortBy(_._2)
   }
 
   /** Returns the list of elements that appear only once in both l1 and l2 ordered as they appear in l2 with their index in l1 */
@@ -83,31 +64,36 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
     if (l.isEmpty) {
       Nil
     } else {
-      @tailrec
-      def push(idx1: Int, idx2: Int, stacks: List[List[Stacked]], last: Option[Stacked], acc: List[List[Stacked]]): List[List[Stacked]] = stacks match {
-        case (stack @ (Stacked(idx, _, _) :: _)) :: tl if idx > idx1 =>
-          // we found the right stack
-          acc reverse_::: (Stacked(idx1, idx2, last) :: stack) :: tl
-        case (stack @ (stacked :: _)) :: tl =>
-          // try the next one
-          push(idx1, idx2, tl, Some(stacked), stack :: acc)
-        case Nil =>
-          // no stack corresponds, create a new one
-          acc reverse_::: List(List(Stacked(idx1, idx2, last)))
-        case Nil :: _ =>
-          // this case should NEVER happen
-          throw new Exception("No empty stack must exist")
-      }
+      type Stacked = List[(Int, Int)]
+
       def sort(l: List[(Occurrence, Int)]): List[List[Stacked]] =
         l.foldLeft(List[List[Stacked]]()) {
           case (acc, ((_, idx1), idx2)) =>
-            push(idx1, idx2, acc, None, Nil)
+
+            @tailrec
+            def push(stacks: List[List[Stacked]], last: List[(Int, Int)], acc: List[List[Stacked]]): List[List[Stacked]] =
+              stacks match {
+                case (stack @ (((idx, _) :: _) :: _)) :: tl if idx > idx1 =>
+                  // we found the right stack
+                  acc.reverse ::: (((idx1, idx2) :: last) :: stack) :: tl
+                case (stack @ (stacked :: _)) :: tl =>
+                  // try the next one
+                  push(tl, stacked, stack :: acc)
+                case Nil =>
+                  // no stack corresponds, create a new one
+                  acc.reverse ::: List(List((idx1, idx2) :: last))
+              }
+
+            push(acc, Nil, Nil)
         }
+
       val sorted = sort(l)
       // this call is safe as we know that the list of occurrence is not empty here and that there are no empty stacks
       val greatest = sorted.last.head
-      // make the lcs in increasing order
-      greatest.chain.reverse
+
+      greatest.foldRight(List.empty[Common]) {
+        case ((idx1, idx2), next) => push(idx1, idx2, next, back = false)
+      }.reverse // make the lcs in increasing order
     }
   }
 
@@ -178,15 +164,6 @@ class Patience[T](withFallback: Boolean = true) extends Lcs[T] {
       }
     // we start with first indices in both sequences
     loop(0, 0, seq1.size, seq2.size, Nil)
-  }
-
-  private case class Stacked(idx1: Int, idx2: Int, next: Option[Stacked]) {
-    lazy val chain: List[Common] = next match {
-      case Some(stacked) =>
-        push(idx1, idx2, stacked.chain, false)
-      case None =>
-        List(Common(idx1, idx2, 1))
-    }
   }
 
 }
