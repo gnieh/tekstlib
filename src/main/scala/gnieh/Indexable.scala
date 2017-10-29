@@ -13,13 +13,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package gnieh.diff
+package gnieh
+
+import matching._
 
 import scala.language.higherKinds
 
 import scala.annotation.tailrec
 
 abstract class Indexable[Coll, Elem] {
+
+  private implicit val self = this
 
   def apply(coll: Coll, idx: Int): Elem
 
@@ -28,6 +32,9 @@ abstract class Indexable[Coll, Elem] {
   def size(coll: Coll): Int
 
   def slice(coll: Coll, start: Int, end: Int): Coll
+
+  def indexOfSlice(s1: Coll, s2: Coll)(implicit equiv: Equiv[Elem]): Int =
+    KMP.search(s1, s2)
 
   def startsWith(s1: Coll, s2: Coll)(implicit equiv: Equiv[Elem]): Boolean = {
     @tailrec

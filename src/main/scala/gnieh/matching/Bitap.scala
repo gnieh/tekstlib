@@ -24,18 +24,41 @@ import scodec.bits._
  *
  *  @author Lucas Satabin
  */
-trait Bitap {
+class Bitap {
 
   /** Searches for the exact given `pattern` in sequence `s` and returns
    *  the index of the first match or `-1`. Maximum `k` errors are allowed.
    */
-  def search[T](pattern: IndexedSeq[T], s: IndexedSeq[T], from: Int = 0, k: Int = 0): Int = {
+  def search[Coll, T](pattern: Coll, s: Coll, from: Int = 0, k: Int = 0)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): Int = {
+
+    class Wrapped(val value: T) {
+      override def hashCode = value.hashCode
+      override def equals(o: Any) = o match {
+        case that: Wrapped => equiv.equiv(this.value, that.value)
+        case _             => false
+      }
+    }
+
     val m = pattern.size
     val n = s.size
     val notOne = BitVector.high(m + 1).update(m, false)
     val r = Vector.fill(k + 1)(notOne)
     val one = BitVector.low(m + 1).update(m, true)
-    val patternMask = patternMap(pattern, m, one)
+
+    def patternMap[Coll, T]: Map[Wrapped, BitVector] = {
+      @tailrec
+      def loop(idx: Int, acc: Map[Wrapped, BitVector]): Map[Wrapped, BitVector] =
+        if (idx == m) {
+          acc
+        } else {
+          val t = new Wrapped(pattern(idx))
+          loop(idx + 1, acc.updated(t, acc(t) & ~(one << idx)))
+        }
+      val ones = BitVector.high(m + 1)
+      loop(0, Map.empty.withDefaultValue(ones))
+    }
+
+    val patternMask = patternMap
 
     val oneShiftM = BitVector.low(m + 1).update(0, true)
     val zeros = BitVector.low(m + 1)
@@ -46,7 +69,7 @@ trait Bitap {
         -1
       } else {
         val t = s(idx)
-        val r01 = r(0) | patternMask(t)
+        val r01 = r(0) | patternMask(new Wrapped(t))
         val r02 = r01 << 1
 
         val r1 = r.updated(0, r02)
@@ -56,9 +79,10 @@ trait Bitap {
           if (d > k) {
             r
           } else {
-            val sub = (old & (r(d) | patternMask(t))) << 1
-            val ins = old & ((r(d) | patternMask(t)) << 1)
-            val del = (nextOld & (r(d) | patternMask(t))) << 1
+            val t1 = new Wrapped(t)
+            val sub = (old & (r(d) | patternMask(t1))) << 1
+            val ins = old & ((r(d) | patternMask(t1)) << 1)
+            val del = (nextOld & (r(d) | patternMask(t1))) << 1
             val r1 = r.updated(d, sub & ins & del)
             dloop(d + 1, r1, r(d), r1(d))
           }
@@ -72,19 +96,6 @@ trait Bitap {
         }
       }
     loop(from, r)
-  }
-
-  private def patternMap[T](pattern: IndexedSeq[T], m: Int, one: BitVector): Map[T, BitVector] = {
-    @tailrec
-    def loop(idx: Int, acc: Map[T, BitVector]): Map[T, BitVector] =
-      if (idx == m) {
-        acc
-      } else {
-        val t = pattern(idx)
-        loop(idx + 1, acc.updated(t, acc(t) & ~(one << idx)))
-      }
-    val ones = BitVector.high(m + 1)
-    loop(0, Map.empty.withDefaultValue(ones))
   }
 
 }

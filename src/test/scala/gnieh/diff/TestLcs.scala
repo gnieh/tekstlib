@@ -126,4 +126,10 @@ abstract class TestLcs extends FlatSpec with Matchers {
     lcsImpl.lcs(s1, s2) should be(List(Common(0, 1, 1)))
   }
 
+  it should "be correctly computed if one sequence is in the middle of the other" in {
+    val s1 = "abcdefghijkl"
+    val s2 = "abdefkl"
+    lcsImpl.lcs(s1, s2) should be(List(Common(0, 0, 2), Common(3, 2, 3), Common(10, 5, 2)))
+  }
+
 }

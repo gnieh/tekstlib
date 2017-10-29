@@ -13,15 +13,17 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package gnieh
-
-package object diff extends IndexableInstances {
+package object gnieh extends IndexableInstances {
 
   implicit class IndexableOps[Coll, T](val coll: Coll) extends AnyVal {
 
     @inline
     def isEmpty(implicit indexable: Indexable[Coll, T]): Boolean =
       indexable.isEmpty(coll)
+
+    @inline
+    def indexOfSlice(that: Coll)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): Int =
+      indexable.indexOfSlice(coll, that)
 
     @inline
     def startsWith(that: Coll)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): Boolean =
@@ -42,6 +44,14 @@ package object diff extends IndexableInstances {
     @inline
     def equivalent(that: Coll)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): Boolean =
       indexable.equivalent(coll, that)
+
+  }
+
+  implicit class EquivOps[T](val v1: T) extends AnyVal {
+
+    @inline
+    def ~=(v2: T)(implicit equiv: Equiv[T]): Boolean =
+      equiv.equiv(v1, v2)
 
   }
 
