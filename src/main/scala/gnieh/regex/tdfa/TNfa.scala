@@ -25,7 +25,8 @@ final case class EpsilonTransition(priority: Int, tags: Set[Int], target: State)
 final case class SymbolTransition[Symbol](sym: Symbol, target: State) extends Transition[Symbol]
 final case class AnyTransition(target: State) extends Transition[Nothing]
 
-class TNfa[Symbol](val initialState: State,
+class TNfa[Symbol](
+    val initialState: State,
     val states: Set[State],
     val finalStates: Map[State, Int],
     val transitions: Map[State, Seq[Transition[Symbol]]]) {

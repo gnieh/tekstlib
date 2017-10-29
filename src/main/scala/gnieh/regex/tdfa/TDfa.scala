@@ -16,7 +16,8 @@
 package gnieh.regex
 package tdfa
 
-class TDfa[Symbol](val initialState: State,
+class TDfa[Symbol](
+    val initialState: State,
     val states: Set[State],
     val initializer: Vector[Command],
     val finishers: Map[State, Vector[Command]],

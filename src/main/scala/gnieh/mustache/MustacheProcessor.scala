@@ -124,14 +124,16 @@ class MustacheProcessor(loader: MustacheLoader, resident: Boolean = false) {
     else
       acc
 
-  private def renderSection(acc: StringBuilder,
+  private def renderSection(
+    acc: StringBuilder,
     name: String,
     content: List[Statement],
     inverted: Boolean,
     value: Map[String, Any])(
-      implicit mtag: ClassTag[Map[String, Any]],
-      mtagl: ClassTag[Seq[Map[String, Any]]],
-      ftag: ClassTag[(List[Statement], Map[String, Any], (List[Statement], Map[String, Any]) => String) => String]): StringBuilder =
+    implicit
+    mtag: ClassTag[Map[String, Any]],
+    mtagl: ClassTag[Seq[Map[String, Any]]],
+    ftag: ClassTag[(List[Statement], Map[String, Any], (List[Statement], Map[String, Any]) => String) => String]): StringBuilder =
     value.get(name) match {
       case Some(false) | Some(Seq()) | Some(null) | None if inverted =>
         // it is undefined or false of empty and inverted, render content
