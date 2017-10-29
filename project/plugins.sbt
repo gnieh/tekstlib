@@ -1,5 +1,5 @@
-addSbtPlugin("com.typesafe.sbt" % "sbt-osgi" % "0.6.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-osgi" % "0.9.2")
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-scalariform" % "1.2.1")
+addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.2")
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.0")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.5.1")

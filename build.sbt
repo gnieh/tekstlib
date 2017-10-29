@@ -1,11 +1,13 @@
+import scalariform.formatter.preferences._
+
 lazy val Benchmark = config("bench") extend Test
 
 lazy val commonSettings = Seq(
   organization := "org.gnieh",
   name := "tekstlib",
   version := "0.1.2-SNAPSHOT",
-  scalaVersion := "2.12.2",
-  crossScalaVersions := Seq("2.12.2", "2.11.8"),
+  scalaVersion := "2.12.4",
+  crossScalaVersions := Seq("2.12.4", "2.11.8"),
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.3" % "test",
   libraryDependencies += "org.scodec" %% "scodec-bits" % "1.1.4",
   scalacOptions in (Compile, doc) ++= Seq("-doc-root-content", "rootdoc.txt"),
@@ -14,9 +16,9 @@ lazy val commonSettings = Seq(
   homepage := Some(url("https://github.com/gnieh/tekstlib")))
 
 lazy val root = project.in(file("."))
+  .enablePlugins(SbtOsgi)
   .settings(commonSettings)
   .settings(osgiSettings)
-  .settings(scalariformSettings)
   .settings(
     resourceDirectories in Compile := List(),
     OsgiKeys.exportPackage := Seq(
@@ -26,12 +28,12 @@ lazy val root = project.in(file("."))
       "Bundle-Name" -> "Gnieh Text and Document Manipulation"),
     OsgiKeys.bundleSymbolicName := "org.gnieh.tekstlib",
     OsgiKeys.privatePackage := Seq(),
-    ScalariformKeys.preferences := {
-      import scalariform.formatter.preferences._
-      ScalariformKeys.preferences.value
+    scalariformAutoformat := true,
+    scalariformPreferences := {
+      scalariformPreferences.value
         .setPreference(AlignSingleLineCaseStatements, true)
-        .setPreference(DoubleIndentClassDeclaration, true)
-        .setPreference(PreserveDanglingCloseParenthesis, true)
+        .setPreference(DoubleIndentConstructorArguments, true)
+        .setPreference(DanglingCloseParenthesis, Preserve)
         .setPreference(MultilineScaladocCommentsStartOnFirstLine, true)
     },
     publishMavenStyle := true,

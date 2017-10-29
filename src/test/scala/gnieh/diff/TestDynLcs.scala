@@ -3,6 +3,6 @@ package test
 
 class TestDynLcs extends TestLcs {
 
-  val lcsImpl = new DynamicProgLcs[Char]
+  val lcsImpl = new DynamicProgLcs
 
 }

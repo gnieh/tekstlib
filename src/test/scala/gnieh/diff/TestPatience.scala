@@ -3,6 +3,6 @@ package test
 
 class TestPatience extends TestLcs {
 
-  val lcsImpl = new Patience[Char]
+  val lcsImpl = new Patience
 
 }

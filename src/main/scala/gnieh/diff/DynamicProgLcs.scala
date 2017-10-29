@@ -11,7 +11,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-package gnieh.diff
+package gnieh
+package diff
 
 import scala.annotation.tailrec
 
@@ -19,15 +20,15 @@ import scala.annotation.tailrec
  *
  *  @author Lucas Satabin
  */
-class DynamicProgLcs[T] extends Lcs[T] {
+class DynamicProgLcs extends Lcs {
 
-  def lcsInner(seq1: IndexedSeq[T], low1: Int, seq2: IndexedSeq[T], low2: Int): List[Common] = {
+  def lcsInner[Coll, T](seq1: Coll, low1: Int, seq2: Coll, low2: Int)(implicit indexable: Indexable[Coll, T], equiv: Equiv[T]): List[Common] = {
     val lengths = Array.ofDim[Int](seq1.size + 1, seq2.size + 1)
     // fill up the length matrix
     for {
       i <- 0 until seq1.size
       j <- 0 until seq2.size
-    } if (seq1(i) == seq2(j))
+    } if (equiv.equiv(seq1(i), seq2(j)))
       lengths(i + 1)(j + 1) = lengths(i)(j) + 1
     else
       lengths(i + 1)(j + 1) = math.max(lengths(i + 1)(j), lengths(i)(j + 1))
